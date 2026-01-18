@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Building2, Palette, Type, Sparkles, Save, RefreshCw,
-  CheckCircle, Clock, FileText, Loader2, Copy, Check
+  CheckCircle, Clock, FileText, Loader2, Copy, Check,
+  Image, MessageSquare, Smartphone, Globe, Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -78,7 +79,9 @@ export default function Stage2Architect() {
     mutationFn: async () => {
       setIsGenerating(true);
       
-      const prompt = `Generate a brand identity for this business:
+      try {
+        // Step 1: Generate color palette, fonts, and brand voice
+        const brandIdentityPrompt = `Generate a brand identity for this business:
 Name: ${currentBusiness.business_name}
 Tagline: ${currentBusiness.tagline || 'N/A'}
 Industry: ${currentBusiness.industry}
@@ -91,61 +94,139 @@ Provide:
 3. Brand voice recommendation
 4. 90-day SOP checklist (10-15 items) for launching this business with task names and descriptions`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt,
-        response_json_schema: {
-          type: "object",
-          properties: {
-            primary_color: { type: "string" },
-            secondary_color: { type: "string" },
-            accent_color: { type: "string" },
-            heading_font: { type: "string" },
-            body_font: { type: "string" },
-            brand_voice: { type: "string" },
-            sop_list: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  day: { type: "number" },
-                  task: { type: "string" },
-                  description: { type: "string" },
-                  category: { type: "string" }
+        const brandResult = await base44.integrations.Core.InvokeLLM({
+          prompt: brandIdentityPrompt,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              primary_color: { type: "string" },
+              secondary_color: { type: "string" },
+              accent_color: { type: "string" },
+              heading_font: { type: "string" },
+              body_font: { type: "string" },
+              brand_voice: { type: "string" },
+              sop_list: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    day: { type: "number" },
+                    task: { type: "string" },
+                    description: { type: "string" },
+                    category: { type: "string" }
+                  }
                 }
               }
             }
           }
-        }
-      });
-
-      const brandPayload = {
-        business_id: currentBusiness.id,
-        primary_color: result.primary_color || brandData.primary_color,
-        secondary_color: result.secondary_color || brandData.secondary_color,
-        accent_color: result.accent_color || brandData.accent_color,
-        background_color: brandData.background_color,
-        text_color: brandData.text_color,
-        heading_font: result.heading_font || 'Inter',
-        body_font: result.body_font || 'Inter',
-        brand_voice: result.brand_voice || 'professional',
-        sop_list: result.sop_list || [],
-      };
-
-      if (currentBrand) {
-        await base44.entities.BrandAssets.update(currentBrand.id, brandPayload);
-      } else {
-        await base44.entities.BrandAssets.create(brandPayload);
-      }
-
-      // Update business stage
-      if (currentBusiness.current_stage < 3) {
-        await base44.entities.BusinessCore.update(currentBusiness.id, {
-          current_stage: 3,
-          stage_completion: { ...currentBusiness.stage_completion, stage2: true }
         });
-      }
 
-      return result;
+        // Step 2: Generate marketing copy
+        const copyPrompt = `Create professional marketing copy for ${currentBusiness.business_name}:
+
+Business: ${currentBusiness.business_name}
+Tagline: ${currentBusiness.tagline || 'N/A'}
+Industry: ${currentBusiness.industry}
+Problem: ${currentBusiness.problem_statement || 'N/A'}
+Solution: ${currentBusiness.solution || 'N/A'}
+Target: ${currentBusiness.target_customer || 'N/A'}
+Brand Voice: ${brandResult.brand_voice || 'professional'}
+
+Generate:
+1. About Us section (2-3 paragraphs, compelling story)
+2. Short social media bio (150 chars max, punchy)
+3. LinkedIn company description (professional, 250 words)
+4. Twitter/X bio (160 chars max, engaging)
+5. Elevator pitch (30 seconds, conversational)
+6. Website hero section copy (headline + subheadline)`;
+
+        const marketingCopy = await base44.integrations.Core.InvokeLLM({
+          prompt: copyPrompt,
+          response_json_schema: {
+            type: "object",
+            properties: {
+              about_us: { type: "string" },
+              social_bio: { type: "string" },
+              linkedin_description: { type: "string" },
+              twitter_bio: { type: "string" },
+              elevator_pitch: { type: "string" },
+              hero_headline: { type: "string" },
+              hero_subheadline: { type: "string" }
+            }
+          }
+        });
+
+        // Step 3: Generate logo concepts (3-5 variations)
+        const logoPrompts = [
+          `Modern minimalist logo for ${currentBusiness.business_name}, ${currentBusiness.industry} company. Clean geometric shapes, ${brandResult.brand_voice || 'professional'} style. Single color on white background. Vector style, simple icon.`,
+          `Abstract lettermark logo for ${currentBusiness.business_name}. Stylized initials, ${currentBusiness.industry} industry. ${brandResult.brand_voice || 'professional'} and sophisticated. Minimalist design.`,
+          `Icon-based logo for ${currentBusiness.business_name}. Symbolic representation of ${currentBusiness.industry}. Modern, scalable, memorable. ${brandResult.brand_voice || 'professional'} aesthetic.`,
+          `Wordmark logo for ${currentBusiness.business_name}. Typography-focused, ${currentBusiness.industry} sector. Clean, ${brandResult.brand_voice || 'professional'}, easily readable. Contemporary font treatment.`,
+          `Badge-style logo for ${currentBusiness.business_name}. ${currentBusiness.industry} company. Circular or shield design. ${brandResult.brand_voice || 'professional'} and trustworthy appearance.`
+        ];
+
+        const logoUrls = [];
+        for (let i = 0; i < 3; i++) {
+          try {
+            const logoResult = await base44.integrations.Core.GenerateImage({
+              prompt: logoPrompts[i]
+            });
+            logoUrls.push(logoResult.url);
+          } catch (err) {
+            console.error(`Logo ${i + 1} generation failed:`, err);
+          }
+        }
+
+        // Step 4: Generate favicon
+        const faviconPrompt = `Simple favicon icon for ${currentBusiness.business_name}. Single letter or simple symbol. Minimal design, high contrast, recognizable at 16x16px. ${brandResult.brand_voice || 'professional'} style. Centered on ${brandResult.primary_color || '#8B5CF6'} background.`;
+        
+        let faviconUrl = '';
+        try {
+          const faviconResult = await base44.integrations.Core.GenerateImage({
+            prompt: faviconPrompt
+          });
+          faviconUrl = faviconResult.url;
+        } catch (err) {
+          console.error('Favicon generation failed:', err);
+        }
+
+        // Save all brand assets
+        const brandPayload = {
+          business_id: currentBusiness.id,
+          primary_color: brandResult.primary_color || brandData.primary_color,
+          secondary_color: brandResult.secondary_color || brandData.secondary_color,
+          accent_color: brandResult.accent_color || brandData.accent_color,
+          background_color: brandData.background_color,
+          text_color: brandData.text_color,
+          heading_font: brandResult.heading_font || 'Inter',
+          body_font: brandResult.body_font || 'Inter',
+          brand_voice: brandResult.brand_voice || 'professional',
+          sop_list: brandResult.sop_list || [],
+          marketing_copy: marketingCopy,
+          logo_concepts: logoUrls,
+          favicon_url: faviconUrl,
+          logo_url: logoUrls[0] || '', // Default to first logo
+        };
+
+        if (currentBrand) {
+          await base44.entities.BrandAssets.update(currentBrand.id, brandPayload);
+        } else {
+          await base44.entities.BrandAssets.create(brandPayload);
+        }
+
+        // Update business stage
+        if (currentBusiness.current_stage < 3) {
+          await base44.entities.BusinessCore.update(currentBusiness.id, {
+            current_stage: 3,
+            stage_completion: { ...currentBusiness.stage_completion, stage2: true }
+          });
+        }
+
+        return brandResult;
+      } catch (error) {
+        setIsGenerating(false);
+        throw error;
+      }
     },
     onSuccess: () => {
       setIsGenerating(false);
@@ -227,6 +308,14 @@ Provide:
           <TabsTrigger value="branding" className="data-[state=active]:bg-white/10">
             <Palette className="w-4 h-4 mr-2" />
             Brand Kit
+          </TabsTrigger>
+          <TabsTrigger value="logos" className="data-[state=active]:bg-white/10">
+            <Image className="w-4 h-4 mr-2" />
+            Logos & Assets
+          </TabsTrigger>
+          <TabsTrigger value="copy" className="data-[state=active]:bg-white/10">
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Marketing Copy
           </TabsTrigger>
           <TabsTrigger value="sops" className="data-[state=active]:bg-white/10">
             <FileText className="w-4 h-4 mr-2" />
@@ -375,10 +464,401 @@ Provide:
           </div>
         </TabsContent>
 
+        <TabsContent value="logos">
+          <LogosView 
+            logoConcepts={currentBrand?.logo_concepts || []} 
+            faviconUrl={currentBrand?.favicon_url}
+            selectedLogo={currentBrand?.logo_url}
+            onSelectLogo={async (url) => {
+              if (currentBrand) {
+                await base44.entities.BrandAssets.update(currentBrand.id, { logo_url: url });
+                queryClient.invalidateQueries({ queryKey: ['brand-assets'] });
+              }
+            }}
+            businessName={currentBusiness?.business_name}
+            isGenerating={isGenerating}
+          />
+        </TabsContent>
+
+        <TabsContent value="copy">
+          <MarketingCopyView 
+            marketingCopy={currentBrand?.marketing_copy} 
+            businessName={currentBusiness?.business_name}
+            isGenerating={isGenerating}
+          />
+        </TabsContent>
+
         <TabsContent value="sops">
           <SOPView sops={currentBrand?.sop_list} businessName={currentBusiness?.business_name} />
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function LogosView({ logoConcepts, faviconUrl, selectedLogo, onSelectLogo, businessName, isGenerating }) {
+  const [copiedText, setCopiedText] = useState('');
+
+  const copyToClipboard = (text, label) => {
+    navigator.clipboard.writeText(text);
+    setCopiedText(label);
+    setTimeout(() => setCopiedText(''), 2000);
+  };
+
+  if (isGenerating) {
+    return (
+      <GlassCard className="p-12 text-center">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Generating Visual Assets...</h3>
+        <p className="text-zinc-500">Creating logo concepts and favicon with AI</p>
+      </GlassCard>
+    );
+  }
+
+  if (!logoConcepts || logoConcepts.length === 0) {
+    return (
+      <GlassCard className="p-12 text-center">
+        <Image className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">No Logo Concepts Yet</h3>
+        <p className="text-zinc-500 mb-4">
+          Click "Auto-Generate Brand" to create AI-powered logo concepts
+        </p>
+      </GlassCard>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Logo Concepts */}
+      <GlassCard className="p-6">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Image className="w-5 h-5 text-blue-400" />
+          Logo Concepts
+        </h3>
+        <p className="text-sm text-zinc-400 mb-6">
+          Select your preferred logo concept. Click to set as primary brand logo.
+        </p>
+        
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+          {logoConcepts.map((url, idx) => (
+            <div
+              key={idx}
+              onClick={() => onSelectLogo(url)}
+              className={`relative group cursor-pointer rounded-xl overflow-hidden border-2 transition-all ${
+                selectedLogo === url 
+                  ? 'border-blue-500 shadow-lg shadow-blue-500/20' 
+                  : 'border-white/10 hover:border-white/30'
+              }`}
+            >
+              <div className="aspect-square bg-white p-8 flex items-center justify-center">
+                <img 
+                  src={url} 
+                  alt={`Logo concept ${idx + 1}`}
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
+                <div className="p-4 w-full">
+                  <p className="text-white text-sm font-medium">Concept {idx + 1}</p>
+                  {selectedLogo === url && (
+                    <Badge className="mt-2 bg-blue-500">Selected</Badge>
+                  )}
+                </div>
+              </div>
+              <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <a
+                  href={url}
+                  download={`${businessName}-logo-${idx + 1}.png`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-2 rounded-lg bg-white/90 hover:bg-white transition-colors"
+                >
+                  <Download className="w-4 h-4 text-gray-900" />
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* Favicon */}
+      {faviconUrl && (
+        <GlassCard className="p-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Smartphone className="w-5 h-5 text-blue-400" />
+            Favicon
+          </h3>
+          <p className="text-sm text-zinc-400 mb-6">
+            Your automatically generated favicon icon for browser tabs and bookmarks.
+          </p>
+          
+          <div className="flex items-start gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-xl bg-white p-2 flex items-center justify-center border border-white/10">
+                  <img src={faviconUrl} alt="Favicon" className="w-full h-full object-contain" />
+                </div>
+                <div className="w-12 h-12 rounded-lg bg-white p-1.5 flex items-center justify-center border border-white/10">
+                  <img src={faviconUrl} alt="Favicon 32x32" className="w-full h-full object-contain" />
+                </div>
+                <div className="w-8 h-8 rounded-md bg-white p-1 flex items-center justify-center border border-white/10">
+                  <img src={faviconUrl} alt="Favicon 16x16" className="w-full h-full object-contain" />
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <a
+                  href={faviconUrl}
+                  download={`${businessName}-favicon.png`}
+                  className="inline-flex"
+                >
+                  <Button variant="outline" size="sm" className="border-white/10">
+                    <Download className="w-4 h-4 mr-2" />
+                    Download
+                  </Button>
+                </a>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-white/10"
+                  onClick={() => copyToClipboard(faviconUrl, 'favicon')}
+                >
+                  {copiedText === 'favicon' ? (
+                    <Check className="w-4 h-4 mr-2 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-4 h-4 mr-2" />
+                  )}
+                  Copy URL
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 p-4 rounded-lg bg-white/5 border border-white/10">
+              <p className="text-xs text-zinc-500 mb-2">Preview in browser tab:</p>
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-900">
+                <img src={faviconUrl} alt="Tab preview" className="w-4 h-4" />
+                <span className="text-sm text-zinc-300">{businessName}</span>
+              </div>
+            </div>
+          </div>
+        </GlassCard>
+      )}
+
+      {/* Usage Tips */}
+      <GlassCard className="p-6 bg-gradient-to-br from-blue-500/10 to-cyan-600/10 border-blue-500/20">
+        <h4 className="font-semibold mb-3 flex items-center gap-2">
+          <Globe className="w-5 h-5 text-blue-400" />
+          Usage Tips
+        </h4>
+        <ul className="space-y-2 text-sm text-zinc-300">
+          <li className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0" />
+            Download your selected logo in multiple formats for different use cases
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0" />
+            Use the favicon on your website by adding it to your site's root directory
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0" />
+            Consider refining chosen concepts with a professional designer for final production
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-2 shrink-0" />
+            Test your logo on different backgrounds to ensure versatility
+          </li>
+        </ul>
+      </GlassCard>
+    </div>
+  );
+}
+
+function MarketingCopyView({ marketingCopy, businessName, isGenerating }) {
+  const [copiedSection, setCopiedSection] = useState('');
+
+  const copyToClipboard = (text, section) => {
+    navigator.clipboard.writeText(text);
+    setCopiedSection(section);
+    setTimeout(() => setCopiedSection(''), 2000);
+  };
+
+  if (isGenerating) {
+    return (
+      <GlassCard className="p-12 text-center">
+        <Loader2 className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Generating Marketing Copy...</h3>
+        <p className="text-zinc-500">Creating professional copy for all channels</p>
+      </GlassCard>
+    );
+  }
+
+  if (!marketingCopy) {
+    return (
+      <GlassCard className="p-12 text-center">
+        <MessageSquare className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">No Marketing Copy Yet</h3>
+        <p className="text-zinc-500 mb-4">
+          Click "Auto-Generate Brand" to create professional marketing copy
+        </p>
+      </GlassCard>
+    );
+  }
+
+  const copyBlocks = [
+    {
+      id: 'hero',
+      title: 'Website Hero Section',
+      icon: Globe,
+      content: [
+        { label: 'Headline', text: marketingCopy.hero_headline },
+        { label: 'Subheadline', text: marketingCopy.hero_subheadline }
+      ],
+      color: 'from-violet-500/20 to-purple-600/20'
+    },
+    {
+      id: 'about',
+      title: 'About Us',
+      icon: Building2,
+      content: [{ label: 'Full Text', text: marketingCopy.about_us }],
+      color: 'from-blue-500/20 to-cyan-600/20'
+    },
+    {
+      id: 'social',
+      title: 'Social Media Bio',
+      icon: MessageSquare,
+      content: [{ label: 'Short Bio (150 chars)', text: marketingCopy.social_bio }],
+      color: 'from-pink-500/20 to-rose-600/20'
+    },
+    {
+      id: 'twitter',
+      title: 'Twitter/X Bio',
+      icon: MessageSquare,
+      content: [{ label: 'Twitter Bio (160 chars)', text: marketingCopy.twitter_bio }],
+      color: 'from-sky-500/20 to-blue-600/20'
+    },
+    {
+      id: 'linkedin',
+      title: 'LinkedIn Description',
+      icon: Building2,
+      content: [{ label: 'Professional Description', text: marketingCopy.linkedin_description }],
+      color: 'from-indigo-500/20 to-blue-600/20'
+    },
+    {
+      id: 'elevator',
+      title: 'Elevator Pitch',
+      icon: MessageSquare,
+      content: [{ label: '30-Second Pitch', text: marketingCopy.elevator_pitch }],
+      color: 'from-emerald-500/20 to-teal-600/20'
+    }
+  ];
+
+  return (
+    <div className="space-y-6">
+      <GlassCard className="p-6 bg-gradient-to-br from-blue-500/10 to-cyan-600/10 border-blue-500/20">
+        <h3 className="text-lg font-semibold mb-2">{businessName} Marketing Assets</h3>
+        <p className="text-sm text-zinc-400">
+          AI-generated marketing copy ready to use across all your channels. Click any section to copy.
+        </p>
+      </GlassCard>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        {copyBlocks.map((block) => {
+          const Icon = block.icon;
+          return (
+            <GlassCard key={block.id} className={`p-6 bg-gradient-to-br ${block.color}`}>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-semibold flex items-center gap-2">
+                  <Icon className="w-5 h-5 text-blue-400" />
+                  {block.title}
+                </h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => copyToClipboard(block.content[0].text, block.id)}
+                  className="hover:bg-white/10"
+                >
+                  {copiedSection === block.id ? (
+                    <Check className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+
+              {block.content.map((item, idx) => (
+                <div key={idx} className="space-y-2">
+                  {block.content.length > 1 && (
+                    <Label className="text-xs text-zinc-500">{item.label}</Label>
+                  )}
+                  <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+                    <p className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap">
+                      {item.text}
+                    </p>
+                  </div>
+                  {block.id === 'social' && (
+                    <p className="text-xs text-zinc-500">
+                      Character count: {item.text?.length || 0}/150
+                    </p>
+                  )}
+                  {block.id === 'twitter' && (
+                    <p className="text-xs text-zinc-500">
+                      Character count: {item.text?.length || 0}/160
+                    </p>
+                  )}
+                </div>
+              ))}
+            </GlassCard>
+          );
+        })}
+      </div>
+
+      {/* Usage Guide */}
+      <GlassCard className="p-6">
+        <h4 className="font-semibold mb-3 flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-blue-400" />
+          How to Use Your Marketing Copy
+        </h4>
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
+                <Globe className="w-4 h-4 text-blue-400" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">Website</p>
+                <p className="text-xs text-zinc-500">Use hero and about sections on your landing page</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center shrink-0">
+                <MessageSquare className="w-4 h-4 text-pink-400" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">Social Profiles</p>
+                <p className="text-xs text-zinc-500">Copy bios directly to Instagram, Facebook, Twitter</p>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center shrink-0">
+                <Building2 className="w-4 h-4 text-indigo-400" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">LinkedIn</p>
+                <p className="text-xs text-zinc-500">Professional description for company page</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center shrink-0">
+                <Users className="w-4 h-4 text-emerald-400" />
+              </div>
+              <div>
+                <p className="font-medium text-sm">Pitching</p>
+                <p className="text-xs text-zinc-500">Use elevator pitch for quick introductions</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </GlassCard>
     </div>
   );
 }
