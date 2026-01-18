@@ -5,7 +5,7 @@ import {
   Shield, FileText, Upload, FolderOpen, Eye, Lock,
   Download, Trash2, CheckCircle, AlertCircle, Clock,
   Building, Users, TrendingUp, DollarSign, Sparkles,
-  Loader2, ExternalLink, FileCheck, Briefcase
+  Loader2, ExternalLink, FileCheck, Briefcase, Brain, Search
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -78,10 +78,54 @@ export default function Stage5Exit() {
 
   const uploadDocumentMutation = useMutation({
     mutationFn: async (data) => {
+      // Analyze document with AI
+      let aiAnalysis = null;
+      if (data.file_url) {
+        try {
+          const analysisPrompt = `Analyze this due diligence document and provide:
+
+Document Type: ${data.document_type}
+Document Name: ${data.document_name}
+
+1. A brief summary (2-3 sentences) of the document's content
+2. Key findings or important information (3-5 bullet points)
+3. Potential risks or red flags based on common due diligence issues (list any concerns)
+4. Suggested status: "verified" if document appears complete and valid, "flagged" if there are concerns, or "uploaded" if neutral
+
+Common due diligence red flags to look for:
+- Missing critical information
+- Inconsistent data or discrepancies
+- Legal issues or pending litigation
+- Financial irregularities
+- Compliance violations
+- Expired contracts or licenses
+- Undisclosed liabilities`;
+
+          const analysis = await base44.integrations.Core.InvokeLLM({
+            prompt: analysisPrompt,
+            file_urls: [data.file_url],
+            response_json_schema: {
+              type: "object",
+              properties: {
+                summary: { type: "string" },
+                key_findings: { type: "array", items: { type: "string" } },
+                risks: { type: "array", items: { type: "string" } },
+                suggested_status: { type: "string" }
+              }
+            }
+          });
+          
+          aiAnalysis = analysis;
+        } catch (error) {
+          console.error('AI analysis failed:', error);
+        }
+      }
+
       return base44.entities.DueDiligence.create({
         ...data,
         business_id: currentBusiness.id,
-        status: 'uploaded',
+        status: aiAnalysis?.suggested_status || 'uploaded',
+        notes: aiAnalysis ? `${data.notes ? data.notes + '\n\n' : ''}AI Analysis:\n${aiAnalysis.summary}\n\nKey Findings:\n${aiAnalysis.key_findings?.join('\n')}\n\nRisks:\n${aiAnalysis.risks?.length > 0 ? aiAnalysis.risks.join('\n') : 'No risks identified'}` : data.notes,
       });
     },
     onSuccess: () => {
@@ -316,40 +360,75 @@ Create:
                   ) : (
                     <div className="space-y-2">
                       {docs.map((doc) => {
-                        const StatusIcon = documentStatuses[doc.status]?.icon || Clock;
-                        return (
-                          <div key={doc.id} className="flex items-center gap-3 p-3 rounded-lg bg-white/5 group">
-                            <StatusIcon className={`w-4 h-4 ${documentStatuses[doc.status]?.color.split(' ')[1]}`} />
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{doc.document_name}</p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <Badge className={documentStatuses[doc.status]?.color} variant="secondary">
-                                  {documentStatuses[doc.status]?.label}
-                                </Badge>
-                                <Badge variant="outline" className="border-white/10 text-xs">
-                                  {visibilityOptions.find(v => v.value === doc.visibility)?.label}
-                                </Badge>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              {doc.file_url && (
-                                <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <ExternalLink className="w-4 h-4" />
-                                  </Button>
-                                </a>
-                              )}
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 text-red-400"
-                                onClick={() => deleteDocumentMutation.mutate(doc.id)}
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        );
+                       const StatusIcon = documentStatuses[doc.status]?.icon || Clock;
+                       const hasAIAnalysis = doc.notes?.includes('AI Analysis:');
+                       const risks = hasAIAnalysis && doc.notes?.includes('Risks:') 
+                         ? doc.notes.split('Risks:')[1]?.split('\n').filter(r => r.trim() && !r.includes('No risks')).length 
+                         : 0;
+
+                       return (
+                         <div key={doc.id} className="p-3 rounded-lg bg-white/5 group">
+                           <div className="flex items-center gap-3">
+                             <StatusIcon className={`w-4 h-4 ${documentStatuses[doc.status]?.color.split(' ')[1]}`} />
+                             <div className="flex-1 min-w-0">
+                               <div className="flex items-center gap-2">
+                                 <p className="text-sm font-medium truncate">{doc.document_name}</p>
+                                 {hasAIAnalysis && (
+                                   <Badge className="bg-violet-500/20 text-violet-400 text-xs" variant="secondary">
+                                     <Brain className="w-3 h-3 mr-1" />
+                                     AI
+                                   </Badge>
+                                 )}
+                               </div>
+                               <div className="flex items-center gap-2 mt-0.5">
+                                 <Badge className={documentStatuses[doc.status]?.color} variant="secondary">
+                                   {documentStatuses[doc.status]?.label}
+                                 </Badge>
+                                 <Badge variant="outline" className="border-white/10 text-xs">
+                                   {visibilityOptions.find(v => v.value === doc.visibility)?.label}
+                                 </Badge>
+                                 {risks > 0 && (
+                                   <Badge className="bg-red-500/20 text-red-400 text-xs" variant="secondary">
+                                     {risks} Risk{risks > 1 ? 's' : ''}
+                                   </Badge>
+                                 )}
+                               </div>
+                             </div>
+                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                               {hasAIAnalysis && (
+                                 <Dialog>
+                                   <DialogTrigger asChild>
+                                     <Button variant="ghost" size="icon" className="h-8 w-8">
+                                       <Search className="w-4 h-4" />
+                                     </Button>
+                                   </DialogTrigger>
+                                   <DialogContent className="bg-[#12121a] border-white/10 max-w-2xl">
+                                     <DialogHeader>
+                                       <DialogTitle>{doc.document_name} - AI Analysis</DialogTitle>
+                                     </DialogHeader>
+                                     <DocumentAnalysisView document={doc} />
+                                   </DialogContent>
+                                 </Dialog>
+                               )}
+                               {doc.file_url && (
+                                 <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
+                                   <Button variant="ghost" size="icon" className="h-8 w-8">
+                                     <ExternalLink className="w-4 h-4" />
+                                   </Button>
+                                 </a>
+                               )}
+                               <Button 
+                                 variant="ghost" 
+                                 size="icon" 
+                                 className="h-8 w-8 text-red-400"
+                                 onClick={() => deleteDocumentMutation.mutate(doc.id)}
+                               >
+                                 <Trash2 className="w-4 h-4" />
+                               </Button>
+                             </div>
+                           </div>
+                         </div>
+                       );
                       })}
                     </div>
                   )}
@@ -370,6 +449,75 @@ Create:
           />
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function DocumentAnalysisView({ document }) {
+  const aiAnalysis = document.notes?.includes('AI Analysis:') ? document.notes : null;
+  
+  if (!aiAnalysis) {
+    return <p className="text-zinc-400">No AI analysis available for this document.</p>;
+  }
+
+  const sections = {
+    summary: aiAnalysis.split('AI Analysis:')[1]?.split('Key Findings:')[0]?.trim() || '',
+    findings: aiAnalysis.split('Key Findings:')[1]?.split('Risks:')[0]?.split('\n').filter(f => f.trim()) || [],
+    risks: aiAnalysis.split('Risks:')[1]?.split('\n').filter(r => r.trim() && !r.includes('No risks')) || [],
+  };
+
+  return (
+    <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+      <div>
+        <h3 className="text-sm font-semibold text-zinc-400 mb-2 flex items-center gap-2">
+          <FileText className="w-4 h-4" />
+          Summary
+        </h3>
+        <p className="text-zinc-300 text-sm leading-relaxed">{sections.summary}</p>
+      </div>
+
+      {sections.findings.length > 0 && (
+        <div>
+          <h3 className="text-sm font-semibold text-zinc-400 mb-2 flex items-center gap-2">
+            <CheckCircle className="w-4 h-4" />
+            Key Findings
+          </h3>
+          <ul className="space-y-2">
+            {sections.findings.map((finding, idx) => (
+              <li key={idx} className="flex items-start gap-2 text-sm text-zinc-300">
+                <span className="text-emerald-400">•</span>
+                <span>{finding}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {sections.risks.length > 0 && (
+        <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+          <h3 className="text-sm font-semibold text-red-400 mb-2 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            Potential Risks Identified
+          </h3>
+          <ul className="space-y-2">
+            {sections.risks.map((risk, idx) => (
+              <li key={idx} className="flex items-start gap-2 text-sm text-zinc-300">
+                <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <span>{risk}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="flex items-center gap-2 pt-4 border-t border-white/10">
+        <Badge className={documentStatuses[document.status]?.color}>
+          {documentStatuses[document.status]?.label}
+        </Badge>
+        <span className="text-xs text-zinc-500">
+          Status automatically assigned by AI analysis
+        </span>
+      </div>
     </div>
   );
 }
@@ -459,10 +607,16 @@ function DocumentUploadForm({ onSubmit, isLoading }) {
           </label>
         </div>
         {formData.file_url && (
-          <p className="text-xs text-emerald-400 mt-1 flex items-center gap-1">
-            <CheckCircle className="w-3 h-3" />
-            File uploaded successfully
-          </p>
+          <div className="space-y-1 mt-1">
+            <p className="text-xs text-emerald-400 flex items-center gap-1">
+              <CheckCircle className="w-3 h-3" />
+              File uploaded successfully
+            </p>
+            <p className="text-xs text-violet-400 flex items-center gap-1">
+              <Brain className="w-3 h-3" />
+              AI will analyze this document upon upload
+            </p>
+          </div>
         )}
       </div>
 
@@ -471,8 +625,17 @@ function DocumentUploadForm({ onSubmit, isLoading }) {
         disabled={isLoading || !formData.document_name}
         className="w-full bg-gradient-to-r from-rose-500 to-pink-500"
       >
-        {isLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Upload className="w-4 h-4 mr-2" />}
-        Upload Document
+        {isLoading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            {formData.file_url ? 'Analyzing & Uploading...' : 'Uploading...'}
+          </>
+        ) : (
+          <>
+            <Upload className="w-4 h-4 mr-2" />
+            Upload & Analyze Document
+          </>
+        )}
       </Button>
     </form>
   );
