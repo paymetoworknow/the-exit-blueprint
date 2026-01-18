@@ -5,7 +5,7 @@ import {
   Calculator, DollarSign, TrendingUp, TrendingDown, 
   Users, Target, Percent, PiggyBank, Save,
   ArrowUpRight, ArrowDownRight, Wallet, LineChart,
-  Loader2, AlertCircle, CheckCircle, Sparkles, BarChart3
+  Loader2, AlertCircle, CheckCircle, Sparkles, BarChart3, GitBranch, RefreshCw
 } from 'lucide-react';
 import { LineChart as RechartsLine, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Button } from '@/components/ui/button';
@@ -32,13 +32,13 @@ const INDUSTRY_MULTIPLIERS = {
 export default function Stage4Quant() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('current');
-  const [projections, setProjections] = useState(null);
+  const [scenarios, setScenarios] = useState(null);
   const [isGeneratingProjections, setIsGeneratingProjections] = useState(false);
-  const [growthAssumptions, setGrowthAssumptions] = useState({
-    revenue_growth_y1: 100,
-    revenue_growth_y2: 80,
-    revenue_growth_y3: 60,
-    margin_improvement: 5,
+  const [selectedScenario, setSelectedScenario] = useState('moderate');
+  const [customAssumptions, setCustomAssumptions] = useState({
+    conservative: { y1: 50, y2: 40, y3: 30, margin: 3 },
+    moderate: { y1: 100, y2: 80, y3: 60, margin: 5 },
+    aggressive: { y1: 150, y2: 120, y3: 100, margin: 8 },
   });
 
   const { data: businesses, isLoading: loadingBusiness } = useQuery({
@@ -191,15 +191,16 @@ export default function Stage4Quant() {
     return `$${num.toFixed(0)}`;
   };
 
-  const generateProjections = async () => {
+  const generateScenarios = async () => {
     setIsGeneratingProjections(true);
     try {
-      const prompt = `Generate detailed 5-year financial projections for ${currentBusiness?.business_name}:
+      const prompt = `Generate THREE scenario-based 5-year financial projections for ${currentBusiness?.business_name}:
 
 CURRENT FINANCIALS:
 Annual Revenue: $${calculations.annual_revenue}
 Monthly Revenue: $${formData.monthly_revenue}
 Monthly Burn: $${formData.monthly_burn}
+Cash on Hand: $${formData.cash_on_hand}
 Gross Margin: ${formData.gross_margin}%
 Customer Count: ${formData.customer_count}
 ARPU: $${calculations.customer_arpu}
@@ -211,63 +212,138 @@ Industry: ${currentBusiness?.industry}
 Market Growth Rate: ${currentMarket?.market_growth_rate || 15}% annually
 TAM: $${currentMarket?.tam || 0}
 
-GROWTH ASSUMPTIONS:
-Year 1 Revenue Growth: ${growthAssumptions.revenue_growth_y1}%
-Year 2 Revenue Growth: ${growthAssumptions.revenue_growth_y2}%
-Year 3 Revenue Growth: ${growthAssumptions.revenue_growth_y3}%
-Margin Improvement: ${growthAssumptions.margin_improvement}% annually
+Generate THREE scenarios with DIFFERENT growth assumptions:
 
-Generate 5 years of projections (Year 0 = current, Years 1-5 = projections) with:
-1. Revenue (compound growth based on assumptions)
-2. Cost of Revenue (inverse of gross margin, improving annually)
-3. Operating Expenses (grows with revenue but at decreasing rate)
-4. EBITDA (Revenue - COGS - OpEx)
-5. Net Income (EBITDA - taxes at 25%)
-6. Cash Flow (Net Income + depreciation estimate)
-7. Customer Count (based on revenue/ARPU with improving churn)
-8. Key metrics per year
+SCENARIO 1 - CONSERVATIVE (Market headwinds, slower adoption):
+Year 1 Growth: ${customAssumptions.conservative.y1}%
+Year 2 Growth: ${customAssumptions.conservative.y2}%
+Year 3+ Growth: ${customAssumptions.conservative.y3}%
+Margin Improvement: ${customAssumptions.conservative.margin}% annually
+Assumptions: Higher churn, slower customer acquisition, cautious expansion
 
-Be realistic and base projections on the current state and industry standards.`;
+SCENARIO 2 - MODERATE (Base case, realistic expectations):
+Year 1 Growth: ${customAssumptions.moderate.y1}%
+Year 2 Growth: ${customAssumptions.moderate.y2}%
+Year 3+ Growth: ${customAssumptions.moderate.y3}%
+Margin Improvement: ${customAssumptions.moderate.margin}% annually
+Assumptions: Steady growth, normal market conditions, balanced execution
+
+SCENARIO 3 - AGGRESSIVE (Market tailwinds, rapid scaling):
+Year 1 Growth: ${customAssumptions.aggressive.y1}%
+Year 2 Growth: ${customAssumptions.aggressive.y2}%
+Year 3+ Growth: ${customAssumptions.aggressive.y3}%
+Margin Improvement: ${customAssumptions.aggressive.margin}% annually
+Assumptions: Viral growth, strong product-market fit, aggressive expansion
+
+For EACH scenario, generate 6 years of data (Year 0 = current, Years 1-5 = projections):
+- Revenue (compound growth)
+- COGS (improving margins)
+- Operating Expenses (scales with revenue)
+- EBITDA
+- Net Income (25% tax rate)
+- Cash Flow
+- Customer Count
+- Runway Months (based on cash burn and cash on hand)
+- Key metrics
+
+Calculate industry-standard valuation multiplier for Year 5.`;
 
       const result = await base44.integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",
           properties: {
-            years: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  year: { type: "string" },
-                  revenue: { type: "number" },
-                  cogs: { type: "number" },
-                  operating_expenses: { type: "number" },
-                  ebitda: { type: "number" },
-                  net_income: { type: "number" },
-                  cash_flow: { type: "number" },
-                  customer_count: { type: "number" },
-                  gross_margin_percent: { type: "number" },
-                  revenue_growth_percent: { type: "number" }
-                }
-              }
-            },
-            assumptions: {
+            conservative: {
               type: "object",
               properties: {
+                scenario_name: { type: "string" },
+                description: { type: "string" },
+                years: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      year: { type: "string" },
+                      revenue: { type: "number" },
+                      cogs: { type: "number" },
+                      operating_expenses: { type: "number" },
+                      ebitda: { type: "number" },
+                      net_income: { type: "number" },
+                      cash_flow: { type: "number" },
+                      customer_count: { type: "number" },
+                      runway_months: { type: "number" },
+                      gross_margin_percent: { type: "number" }
+                    }
+                  }
+                },
+                year_5_valuation: { type: "number" },
                 revenue_cagr: { type: "number" },
-                target_margin: { type: "number" },
-                breakeven_year: { type: "string" },
-                year_5_valuation: { type: "number" }
+                breakeven_year: { type: "string" }
+              }
+            },
+            moderate: {
+              type: "object",
+              properties: {
+                scenario_name: { type: "string" },
+                description: { type: "string" },
+                years: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      year: { type: "string" },
+                      revenue: { type: "number" },
+                      cogs: { type: "number" },
+                      operating_expenses: { type: "number" },
+                      ebitda: { type: "number" },
+                      net_income: { type: "number" },
+                      cash_flow: { type: "number" },
+                      customer_count: { type: "number" },
+                      runway_months: { type: "number" },
+                      gross_margin_percent: { type: "number" }
+                    }
+                  }
+                },
+                year_5_valuation: { type: "number" },
+                revenue_cagr: { type: "number" },
+                breakeven_year: { type: "string" }
+              }
+            },
+            aggressive: {
+              type: "object",
+              properties: {
+                scenario_name: { type: "string" },
+                description: { type: "string" },
+                years: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      year: { type: "string" },
+                      revenue: { type: "number" },
+                      cogs: { type: "number" },
+                      operating_expenses: { type: "number" },
+                      ebitda: { type: "number" },
+                      net_income: { type: "number" },
+                      cash_flow: { type: "number" },
+                      customer_count: { type: "number" },
+                      runway_months: { type: "number" },
+                      gross_margin_percent: { type: "number" }
+                    }
+                  }
+                },
+                year_5_valuation: { type: "number" },
+                revenue_cagr: { type: "number" },
+                breakeven_year: { type: "string" }
               }
             }
           }
         }
       });
 
-      setProjections(result);
+      setScenarios(result);
     } catch (error) {
-      console.error('Projection generation failed:', error);
+      console.error('Scenario generation failed:', error);
     }
     setIsGeneratingProjections(false);
   };
@@ -309,14 +385,16 @@ Be realistic and base projections on the current state and industry standards.`;
       </Tabs>
 
       {activeTab === 'projections' ? (
-        <ProjectionsView
-          projections={projections}
+        <ScenariosView
+          scenarios={scenarios}
           isGenerating={isGeneratingProjections}
-          onGenerate={generateProjections}
-          growthAssumptions={growthAssumptions}
-          setGrowthAssumptions={setGrowthAssumptions}
-          currentRevenue={calculations.annual_revenue}
+          onGenerate={generateScenarios}
+          customAssumptions={customAssumptions}
+          setCustomAssumptions={setCustomAssumptions}
+          selectedScenario={selectedScenario}
+          setSelectedScenario={setSelectedScenario}
           formatCurrency={formatCurrency}
+          industryMultiplier={calculations.valuation_multiplier}
         />
       ) : (
         <>
@@ -545,67 +623,86 @@ Be realistic and base projections on the current state and industry standards.`;
   );
 }
 
-function ProjectionsView({ projections, isGenerating, onGenerate, growthAssumptions, setGrowthAssumptions, currentRevenue, formatCurrency }) {
-  if (!projections && !isGenerating) {
+function ScenariosView({ scenarios, isGenerating, onGenerate, customAssumptions, setCustomAssumptions, selectedScenario, setSelectedScenario, formatCurrency, industryMultiplier }) {
+  if (!scenarios && !isGenerating) {
     return (
       <div className="space-y-6">
         <GlassCard className="p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            Growth Assumptions
+            <GitBranch className="w-5 h-5 text-amber-400" />
+            Scenario Assumptions
           </h3>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <Label className="text-zinc-400">Year 1 Growth (%)</Label>
-              <Input
-                type="number"
-                value={growthAssumptions.revenue_growth_y1}
-                onChange={e => setGrowthAssumptions(p => ({ ...p, revenue_growth_y1: parseFloat(e.target.value) || 0 }))}
-                className="mt-1.5 bg-white/5 border-white/10"
-              />
-            </div>
-            <div>
-              <Label className="text-zinc-400">Year 2 Growth (%)</Label>
-              <Input
-                type="number"
-                value={growthAssumptions.revenue_growth_y2}
-                onChange={e => setGrowthAssumptions(p => ({ ...p, revenue_growth_y2: parseFloat(e.target.value) || 0 }))}
-                className="mt-1.5 bg-white/5 border-white/10"
-              />
-            </div>
-            <div>
-              <Label className="text-zinc-400">Year 3+ Growth (%)</Label>
-              <Input
-                type="number"
-                value={growthAssumptions.revenue_growth_y3}
-                onChange={e => setGrowthAssumptions(p => ({ ...p, revenue_growth_y3: parseFloat(e.target.value) || 0 }))}
-                className="mt-1.5 bg-white/5 border-white/10"
-              />
-            </div>
-            <div>
-              <Label className="text-zinc-400">Margin Improvement (%/yr)</Label>
-              <Input
-                type="number"
-                value={growthAssumptions.margin_improvement}
-                onChange={e => setGrowthAssumptions(p => ({ ...p, margin_improvement: parseFloat(e.target.value) || 0 }))}
-                className="mt-1.5 bg-white/5 border-white/10"
-              />
-            </div>
+          <div className="grid lg:grid-cols-3 gap-6">
+            {['conservative', 'moderate', 'aggressive'].map((scenario) => (
+              <div key={scenario} className="p-4 rounded-xl bg-white/5 border border-white/10">
+                <p className="text-sm font-semibold mb-3 capitalize">{scenario}</p>
+                <div className="space-y-3">
+                  <div>
+                    <Label className="text-xs text-zinc-500">Y1 Growth %</Label>
+                    <Input
+                      type="number"
+                      value={customAssumptions[scenario].y1}
+                      onChange={e => setCustomAssumptions(p => ({ 
+                        ...p, 
+                        [scenario]: { ...p[scenario], y1: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="mt-1 bg-white/5 border-white/10 h-8 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-zinc-500">Y2 Growth %</Label>
+                    <Input
+                      type="number"
+                      value={customAssumptions[scenario].y2}
+                      onChange={e => setCustomAssumptions(p => ({ 
+                        ...p, 
+                        [scenario]: { ...p[scenario], y2: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="mt-1 bg-white/5 border-white/10 h-8 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-zinc-500">Y3+ Growth %</Label>
+                    <Input
+                      type="number"
+                      value={customAssumptions[scenario].y3}
+                      onChange={e => setCustomAssumptions(p => ({ 
+                        ...p, 
+                        [scenario]: { ...p[scenario], y3: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="mt-1 bg-white/5 border-white/10 h-8 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-zinc-500">Margin Improve %</Label>
+                    <Input
+                      type="number"
+                      value={customAssumptions[scenario].margin}
+                      onChange={e => setCustomAssumptions(p => ({ 
+                        ...p, 
+                        [scenario]: { ...p[scenario], margin: parseFloat(e.target.value) || 0 }
+                      }))}
+                      className="mt-1 bg-white/5 border-white/10 h-8 text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </GlassCard>
 
         <GlassCard className="p-12 text-center">
-          <BarChart3 className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Generate Financial Projections</h3>
+          <GitBranch className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold mb-2">Generate Scenario Analysis</h3>
           <p className="text-zinc-500 mb-6 max-w-md mx-auto">
-            AI will create detailed 5-year projections based on your current metrics, market data, and growth assumptions.
+            AI will create three distinct 5-year scenarios (Conservative, Moderate, Aggressive) based on different market conditions.
           </p>
           <Button
             onClick={onGenerate}
             className="bg-gradient-to-r from-amber-500 to-orange-500"
           >
             <Sparkles className="w-4 h-4 mr-2" />
-            Generate Projections
+            Generate Scenarios
           </Button>
         </GlassCard>
       </div>
@@ -616,13 +713,23 @@ function ProjectionsView({ projections, isGenerating, onGenerate, growthAssumpti
     return (
       <GlassCard className="p-12 text-center">
         <Loader2 className="w-12 h-12 animate-spin text-amber-500 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Generating Projections...</h3>
-        <p className="text-zinc-500">Analyzing your data and modeling future scenarios</p>
+        <h3 className="text-lg font-semibold mb-2">Generating Scenario Analysis...</h3>
+        <p className="text-zinc-500">Creating conservative, moderate, and aggressive projections</p>
       </GlassCard>
     );
   }
 
-  const chartData = projections.years.map(y => ({
+  const currentScenario = scenarios[selectedScenario];
+  
+  // Comparison data for all scenarios
+  const comparisonData = scenarios.conservative.years.map((_, idx) => ({
+    year: scenarios.conservative.years[idx].year,
+    Conservative: scenarios.conservative.years[idx].revenue,
+    Moderate: scenarios.moderate.years[idx].revenue,
+    Aggressive: scenarios.aggressive.years[idx].revenue,
+  }));
+
+  const chartData = currentScenario.years.map(y => ({
     year: y.year,
     Revenue: y.revenue,
     EBITDA: y.ebitda,
@@ -632,25 +739,95 @@ function ProjectionsView({ projections, isGenerating, onGenerate, growthAssumpti
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
+      {/* Scenario Selector */}
+      <div className="flex gap-2">
+        {['conservative', 'moderate', 'aggressive'].map((scenario) => (
+          <Button
+            key={scenario}
+            onClick={() => setSelectedScenario(scenario)}
+            variant={selectedScenario === scenario ? 'default' : 'outline'}
+            className={selectedScenario === scenario 
+              ? 'bg-gradient-to-r from-amber-500 to-orange-500' 
+              : 'border-white/10'
+            }
+          >
+            {scenario.charAt(0).toUpperCase() + scenario.slice(1)}
+          </Button>
+        ))}
+      </div>
+
+      {/* Scenario Comparison Summary */}
+      <GlassCard className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Scenario Comparison - Year 5</h3>
+        <div className="grid grid-cols-3 gap-4">
+          {['conservative', 'moderate', 'aggressive'].map((scenario) => (
+            <div 
+              key={scenario}
+              className={`p-4 rounded-xl border ${selectedScenario === scenario ? 'border-amber-500/30 bg-amber-500/10' : 'border-white/10 bg-white/5'}`}
+            >
+              <p className="text-xs text-zinc-500 uppercase mb-2">{scenario}</p>
+              <div className="space-y-2">
+                <div>
+                  <p className="text-xs text-zinc-400">Valuation</p>
+                  <p className="text-lg font-bold">{formatCurrency(scenarios[scenario].year_5_valuation)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-400">Revenue</p>
+                  <p className="text-sm font-semibold">{formatCurrency(scenarios[scenario].years[5]?.revenue)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-400">Runway Y5</p>
+                  <p className="text-sm">{scenarios[scenario].years[5]?.runway_months || 0} mo</p>
+                </div>
+                <div>
+                  <p className="text-xs text-zinc-400">CAGR</p>
+                  <p className="text-sm text-emerald-400">{scenarios[scenario].revenue_cagr?.toFixed(1)}%</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </GlassCard>
+
+      {/* Current Scenario Details */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <GlassCard className="p-4 bg-gradient-to-br from-emerald-500/10 to-teal-600/10">
           <p className="text-xs text-zinc-400 mb-1">Revenue CAGR</p>
-          <p className="text-2xl font-bold text-emerald-400">{projections.assumptions.revenue_cagr?.toFixed(1)}%</p>
+          <p className="text-2xl font-bold text-emerald-400">{currentScenario.revenue_cagr?.toFixed(1)}%</p>
         </GlassCard>
         <GlassCard className="p-4 bg-gradient-to-br from-violet-500/10 to-purple-600/10">
           <p className="text-xs text-zinc-400 mb-1">Year 5 Revenue</p>
-          <p className="text-2xl font-bold text-violet-400">{formatCurrency(projections.years[5]?.revenue)}</p>
+          <p className="text-2xl font-bold text-violet-400">{formatCurrency(currentScenario.years[5]?.revenue)}</p>
         </GlassCard>
         <GlassCard className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-600/10">
           <p className="text-xs text-zinc-400 mb-1">Breakeven</p>
-          <p className="text-2xl font-bold text-blue-400">{projections.assumptions.breakeven_year || 'N/A'}</p>
+          <p className="text-2xl font-bold text-blue-400">{currentScenario.breakeven_year || 'N/A'}</p>
         </GlassCard>
         <GlassCard className="p-4 bg-gradient-to-br from-amber-500/10 to-orange-600/10">
           <p className="text-xs text-zinc-400 mb-1">Year 5 Valuation</p>
-          <p className="text-2xl font-bold text-amber-400">{formatCurrency(projections.assumptions.year_5_valuation)}</p>
+          <p className="text-2xl font-bold text-amber-400">{formatCurrency(currentScenario.year_5_valuation)}</p>
         </GlassCard>
       </div>
+
+      {/* Revenue Comparison Across Scenarios */}
+      <GlassCard className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Revenue Projection - All Scenarios</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <RechartsLine data={comparisonData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+            <XAxis dataKey="year" stroke="#71717A" />
+            <YAxis stroke="#71717A" tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#18181B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+              formatter={(value) => formatCurrency(value)}
+            />
+            <Legend />
+            <Line type="monotone" dataKey="Conservative" stroke="#EF4444" strokeWidth={2} dot={{ r: 4 }} />
+            <Line type="monotone" dataKey="Moderate" stroke="#3B82F6" strokeWidth={2} dot={{ r: 4 }} />
+            <Line type="monotone" dataKey="Aggressive" stroke="#10B981" strokeWidth={2} dot={{ r: 4 }} />
+          </RechartsLine>
+        </ResponsiveContainer>
+      </GlassCard>
 
       {/* Revenue Chart */}
       <GlassCard className="p-6">
@@ -700,14 +877,15 @@ function ProjectionsView({ projections, isGenerating, onGenerate, growthAssumpti
         </ResponsiveContainer>
       </GlassCard>
 
-      {/* Detailed Table */}
+      {/* Detailed Table - Current Scenario */}
       <GlassCard className="p-6 overflow-x-auto">
-        <h3 className="text-lg font-semibold mb-4">Detailed Financial Projections</h3>
+        <h3 className="text-lg font-semibold mb-4">Detailed Projections - {currentScenario.scenario_name}</h3>
+        <p className="text-sm text-zinc-400 mb-4">{currentScenario.description}</p>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-white/10">
               <th className="text-left py-3 px-2 text-zinc-400 font-medium">Metric</th>
-              {projections.years.map((y, idx) => (
+              {currentScenario.years.map((y, idx) => (
                 <th key={idx} className="text-right py-3 px-2 text-zinc-400 font-medium">{y.year}</th>
               ))}
             </tr>
@@ -715,25 +893,25 @@ function ProjectionsView({ projections, isGenerating, onGenerate, growthAssumpti
           <tbody>
             <tr className="border-b border-white/10">
               <td className="py-3 px-2 font-medium">Revenue</td>
-              {projections.years.map((y, idx) => (
+              {currentScenario.years.map((y, idx) => (
                 <td key={idx} className="text-right py-3 px-2">{formatCurrency(y.revenue)}</td>
               ))}
             </tr>
             <tr className="border-b border-white/10">
               <td className="py-3 px-2 text-zinc-400">COGS</td>
-              {projections.years.map((y, idx) => (
+              {currentScenario.years.map((y, idx) => (
                 <td key={idx} className="text-right py-3 px-2 text-zinc-400">{formatCurrency(y.cogs)}</td>
               ))}
             </tr>
             <tr className="border-b border-white/10">
               <td className="py-3 px-2 text-zinc-400">Operating Expenses</td>
-              {projections.years.map((y, idx) => (
+              {currentScenario.years.map((y, idx) => (
                 <td key={idx} className="text-right py-3 px-2 text-zinc-400">{formatCurrency(y.operating_expenses)}</td>
               ))}
             </tr>
             <tr className="border-b border-white/10">
               <td className="py-3 px-2 font-medium">EBITDA</td>
-              {projections.years.map((y, idx) => (
+              {currentScenario.years.map((y, idx) => (
                 <td key={idx} className={`text-right py-3 px-2 font-medium ${y.ebitda >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {formatCurrency(y.ebitda)}
                 </td>
@@ -741,7 +919,7 @@ function ProjectionsView({ projections, isGenerating, onGenerate, growthAssumpti
             </tr>
             <tr className="border-b border-white/10">
               <td className="py-3 px-2 font-medium">Net Income</td>
-              {projections.years.map((y, idx) => (
+              {currentScenario.years.map((y, idx) => (
                 <td key={idx} className={`text-right py-3 px-2 font-medium ${y.net_income >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                   {formatCurrency(y.net_income)}
                 </td>
@@ -749,14 +927,22 @@ function ProjectionsView({ projections, isGenerating, onGenerate, growthAssumpti
             </tr>
             <tr className="border-b border-white/10">
               <td className="py-3 px-2">Gross Margin %</td>
-              {projections.years.map((y, idx) => (
+              {currentScenario.years.map((y, idx) => (
                 <td key={idx} className="text-right py-3 px-2">{y.gross_margin_percent?.toFixed(1)}%</td>
               ))}
             </tr>
             <tr className="border-b border-white/10">
               <td className="py-3 px-2">Customers</td>
-              {projections.years.map((y, idx) => (
+              {currentScenario.years.map((y, idx) => (
                 <td key={idx} className="text-right py-3 px-2">{y.customer_count?.toLocaleString()}</td>
+              ))}
+            </tr>
+            <tr className="border-b border-white/10">
+              <td className="py-3 px-2">Runway (months)</td>
+              {currentScenario.years.map((y, idx) => (
+                <td key={idx} className={`text-right py-3 px-2 ${y.runway_months < 6 ? 'text-red-400' : y.runway_months < 12 ? 'text-amber-400' : 'text-emerald-400'}`}>
+                  {y.runway_months?.toFixed(0)}
+                </td>
               ))}
             </tr>
           </tbody>
