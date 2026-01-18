@@ -90,33 +90,84 @@ export default function Stage3Engine() {
         return `$${num}`;
       };
 
-      const prompt = `Create a 10-slide investor pitch deck for:
+      // Calculate customer segments from CRM leads
+      const customerLeads = leads?.filter(l => l.lead_type === 'customer') || [];
+      const investorLeads = leads?.filter(l => l.lead_type === 'investor') || [];
+      const totalLeadValue = leads?.reduce((sum, l) => sum + (l.deal_size || 0), 0) || 0;
 
-Business: ${currentBusiness.business_name}
+      // Calculate growth metrics
+      const monthlyGrowth = currentFinancials?.monthly_revenue && currentFinancials.customer_count 
+        ? ((currentFinancials.monthly_revenue / currentFinancials.customer_count) * 12 / (currentFinancials.arpu || 1)) * 100
+        : 0;
+
+      // Get top competitors
+      const competitors = currentMarket?.competitors?.slice(0, 3).map(c => c.name).join(', ') || 'Market leaders';
+
+      const prompt = `Create a 10-slide VC-quality investor pitch deck with SPECIFIC data points for ${currentBusiness.business_name}.
+
+BUSINESS CONTEXT:
+Name: ${currentBusiness.business_name}
 Tagline: ${currentBusiness.tagline || 'N/A'}
 Industry: ${currentBusiness.industry}
-Problem: ${currentBusiness.problem_statement || 'N/A'}
-Solution: ${currentBusiness.solution || 'N/A'}
-Target Customer: ${currentBusiness.target_customer || 'N/A'}
-Unique Value: ${currentBusiness.unique_value_prop || 'N/A'}
+Business Model: ${currentBusiness.business_model}
+Problem: ${currentBusiness.problem_statement}
+Solution: ${currentBusiness.solution}
+Target Customer: ${currentBusiness.target_customer}
+Unique Value Proposition: ${currentBusiness.unique_value_prop}
 
-Market Data:
-TAM: ${formatCurrency(currentMarket?.tam)}
-SAM: ${formatCurrency(currentMarket?.sam)}
-SOM: ${formatCurrency(currentMarket?.som)}
-Growth Rate: ${currentMarket?.market_growth_rate || 0}%
+MARKET DATA (Use these exact numbers):
+TAM: ${formatCurrency(currentMarket?.tam)} (Total Addressable Market)
+SAM: ${formatCurrency(currentMarket?.sam)} (Serviceable Addressable Market)
+SOM: ${formatCurrency(currentMarket?.som)} (Serviceable Obtainable Market)
+Market Growth Rate: ${currentMarket?.market_growth_rate || 0}% annually
+Market Confidence Score: ${currentMarket?.market_confidence || 0}%
+Key Competitors: ${competitors}
 
-Financials:
-Monthly Revenue: ${formatCurrency(currentFinancials?.monthly_revenue)}
+FINANCIAL METRICS (Use these exact numbers):
+Monthly Recurring Revenue: ${formatCurrency(currentFinancials?.monthly_revenue)}
 Annual Revenue: ${formatCurrency(currentFinancials?.annual_revenue)}
-Valuation: ${formatCurrency(currentFinancials?.valuation)}
-LTV/CAC: ${currentFinancials?.ltv_cac_ratio?.toFixed(2) || 'N/A'}
-Customers: ${currentFinancials?.customer_count || 0}
+Current Valuation: ${formatCurrency(currentFinancials?.valuation)}
+LTV/CAC Ratio: ${currentFinancials?.ltv_cac_ratio?.toFixed(2) || 'N/A'}
+Customer Lifetime Value: ${formatCurrency(currentFinancials?.ltv)}
+Customer Acquisition Cost: ${formatCurrency(currentFinancials?.cac)}
+Total Customers: ${currentFinancials?.customer_count || 0}
+ARPU: ${formatCurrency(currentFinancials?.arpu || (currentFinancials?.monthly_revenue / Math.max(currentFinancials?.customer_count, 1)))}
+Gross Margin: ${currentFinancials?.gross_margin || 70}%
+Monthly Burn: ${formatCurrency(currentFinancials?.monthly_burn)}
+Runway: ${currentFinancials?.runway_months || 0} months
+Churn Rate: ${currentFinancials?.churn_rate || 5}% monthly
 
-Create compelling slide content for each slide. Include specific numbers and data where available.`;
+TRACTION DATA:
+Total Pipeline Value: ${formatCurrency(totalLeadValue)}
+Active Customer Leads: ${customerLeads.length}
+Investor Conversations: ${investorLeads.length}
+Estimated Monthly Growth: ${monthlyGrowth.toFixed(1)}%
+
+SWOT INSIGHTS:
+Strengths: ${currentMarket?.swot?.strengths?.join(', ') || 'N/A'}
+Opportunities: ${currentMarket?.swot?.opportunities?.join(', ') || 'N/A'}
+
+Create a 10-slide deck with these REQUIRED slides:
+1. Cover - Company name, tagline, and one compelling hook
+2. Problem - The pain point with market context
+3. Solution - How we solve it uniquely
+4. Market Opportunity - Use TAM/SAM/SOM data with growth rate
+5. Product/Technology - Core offering and differentiation
+6. Business Model - Revenue streams and unit economics (LTV/CAC, ARPU, margins)
+7. Traction - Real metrics (customers, revenue, pipeline, growth %)
+8. Competitive Landscape - Position vs competitors
+9. Financial Projections - Current metrics + 3-year forecast based on growth
+10. Ask - Funding amount and use of funds
+
+For EACH slide, provide:
+- Compelling title and subtitle
+- 3-5 bullet points with SPECIFIC data where available
+- data_points array with key metrics formatted as {label, value}
+- Make slides 4, 6, 7, 9 extremely data-rich with all available numbers`;
 
       const result = await base44.integrations.Core.InvokeLLM({
         prompt,
+        add_context_from_internet: false,
         response_json_schema: {
           type: "object",
           properties: {
@@ -129,7 +180,16 @@ Create compelling slide content for each slide. Include specific numbers and dat
                   title: { type: "string" },
                   subtitle: { type: "string" },
                   content: { type: "array", items: { type: "string" } },
-                  data_points: { type: "array", items: { type: "object", properties: { label: { type: "string" }, value: { type: "string" } } } },
+                  data_points: { 
+                    type: "array", 
+                    items: { 
+                      type: "object", 
+                      properties: { 
+                        label: { type: "string" }, 
+                        value: { type: "string" } 
+                      } 
+                    } 
+                  },
                   slide_type: { type: "string" }
                 }
               }
