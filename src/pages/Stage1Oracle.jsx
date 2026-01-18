@@ -268,6 +268,9 @@ Provide:
           <TabsTrigger value="swot" className="data-[state=active]:bg-white/10" disabled={!currentMarket?.swot}>
             SWOT Analysis
           </TabsTrigger>
+          <TabsTrigger value="competitors" className="data-[state=active]:bg-white/10">
+            Competitors
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="idea">
@@ -285,7 +288,213 @@ Provide:
         <TabsContent value="swot">
           <SwotView swot={currentMarket?.swot} />
         </TabsContent>
+
+        <TabsContent value="competitors">
+          <CompetitorAnalysisView 
+            currentBusiness={currentBusiness} 
+            currentMarket={currentMarket} 
+          />
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function CompetitorAnalysisView({ currentBusiness, currentMarket }) {
+  const queryClient = useQueryClient();
+  const [competitorInput, setCompetitorInput] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const handleAnalyze = async () => {
+    if (!competitorInput.trim()) return;
+    
+    setIsAnalyzing(true);
+    try {
+      const prompt = `Analyze the following competitors in the ${currentBusiness?.industry} industry:
+
+Competitors: ${competitorInput}
+
+For EACH competitor, provide detailed analysis using real web data:
+1. Company overview and market position
+2. Product/service offerings
+3. Pricing strategy
+4. Estimated annual revenue (real data if available)
+5. Funding raised (real data if available)
+6. Strengths (3-5)
+7. Weaknesses (3-5)
+8. Market share estimate (%)
+9. Target customer segments
+10. Competitive advantages`;
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt,
+        add_context_from_internet: true,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            competitors: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  name: { type: "string" },
+                  overview: { type: "string" },
+                  products: { type: "string" },
+                  pricing_strategy: { type: "string" },
+                  estimated_revenue: { type: "string" },
+                  funding: { type: "string" },
+                  strengths: { type: "array", items: { type: "string" } },
+                  weaknesses: { type: "array", items: { type: "string" } },
+                  market_share: { type: "number" },
+                  target_segments: { type: "string" },
+                  competitive_advantages: { type: "array", items: { type: "string" } },
+                  description: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if (currentMarket) {
+        await base44.entities.MarketAnalysis.update(currentMarket.id, {
+          competitors: result.competitors
+        });
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['market-analysis'] });
+      setCompetitorInput('');
+    } catch (error) {
+      console.error('Competitor analysis failed:', error);
+    }
+    setIsAnalyzing(false);
+  };
+
+  const competitors = currentMarket?.competitors || [];
+
+  return (
+    <div className="space-y-6">
+      <GlassCard className="p-6">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Users className="w-5 h-5 text-violet-400" />
+          AI-Powered Competitor Analysis
+        </h3>
+        <div className="flex gap-3">
+          <Input
+            placeholder="Enter competitor names (comma-separated, e.g., Stripe, Square, PayPal)"
+            value={competitorInput}
+            onChange={(e) => setCompetitorInput(e.target.value)}
+            className="flex-1 bg-white/5 border-white/10"
+            onKeyPress={(e) => e.key === 'Enter' && handleAnalyze()}
+          />
+          <Button
+            onClick={handleAnalyze}
+            disabled={isAnalyzing || !competitorInput.trim()}
+            className="bg-gradient-to-r from-violet-500 to-purple-600"
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Analyze
+              </>
+            )}
+          </Button>
+        </div>
+        <p className="text-xs text-zinc-500 mt-2">
+          AI will research competitors using web data for detailed market intelligence
+        </p>
+      </GlassCard>
+
+      {competitors.length > 0 ? (
+        <div className="grid lg:grid-cols-2 gap-6">
+          {competitors.map((competitor, idx) => (
+            <GlassCard key={idx} className="p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold">{competitor.name}</h3>
+                  {competitor.market_share > 0 && (
+                    <Badge className="mt-1 bg-violet-500/20 text-violet-400">
+                      {competitor.market_share}% Market Share
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs text-zinc-500 uppercase tracking-wide mb-1">Overview</p>
+                  <p className="text-sm text-zinc-300">{competitor.overview || competitor.description}</p>
+                </div>
+
+                {(competitor.estimated_revenue || competitor.funding) && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {competitor.estimated_revenue && (
+                      <div className="p-3 rounded-lg bg-white/5">
+                        <p className="text-xs text-zinc-500">Est. Revenue</p>
+                        <p className="text-sm font-semibold">{competitor.estimated_revenue}</p>
+                      </div>
+                    )}
+                    {competitor.funding && (
+                      <div className="p-3 rounded-lg bg-white/5">
+                        <p className="text-xs text-zinc-500">Funding</p>
+                        <p className="text-sm font-semibold">{competitor.funding}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {competitor.strengths?.length > 0 && (
+                  <div>
+                    <p className="text-xs text-zinc-500 uppercase tracking-wide mb-2">Strengths</p>
+                    <ul className="space-y-1">
+                      {competitor.strengths.slice(0, 3).map((strength, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                          <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0 mt-0.5" />
+                          <span>{strength}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {competitor.weaknesses?.length > 0 && (
+                  <div>
+                    <p className="text-xs text-zinc-500 uppercase tracking-wide mb-2">Weaknesses</p>
+                    <ul className="space-y-1">
+                      {competitor.weaknesses.slice(0, 3).map((weakness, i) => (
+                        <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
+                          <AlertTriangle className="w-3 h-3 text-amber-400 shrink-0 mt-0.5" />
+                          <span>{weakness}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {competitor.products && (
+                  <div>
+                    <p className="text-xs text-zinc-500 uppercase tracking-wide mb-1">Products & Services</p>
+                    <p className="text-xs text-zinc-300">{competitor.products}</p>
+                  </div>
+                )}
+              </div>
+            </GlassCard>
+          ))}
+        </div>
+      ) : (
+        <GlassCard className="p-12 text-center">
+          <Users className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">No Competitors Analyzed Yet</h3>
+          <p className="text-zinc-500 max-w-md mx-auto">
+            Add competitor names above to get AI analysis of their positioning, strengths, and weaknesses
+          </p>
+        </GlassCard>
+      )}
     </div>
   );
 }
