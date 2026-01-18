@@ -212,6 +212,19 @@ Industry: ${currentBusiness?.industry}
 Market Growth Rate: ${currentMarket?.market_growth_rate || 15}% annually
 TAM: $${currentMarket?.tam || 0}
 
+COMPETITIVE LANDSCAPE:
+${currentMarket?.competitors?.length > 0 ? 
+  `Key Competitors:\n${currentMarket.competitors.map(c => 
+    `- ${c.name}: Market Share ${c.market_share}%, Revenue: ${c.estimated_revenue || 'N/A'}, Strengths: ${c.strengths?.join(', ')}`
+  ).join('\n')}
+
+Consider competitive dynamics in growth assumptions. Factor in:
+- Competitive pressure on pricing and margins
+- Market share capture from weaker competitors
+- Defensive strategies needed against stronger players` 
+  : 'No detailed competitor analysis available - use industry benchmarks'
+}
+
 Generate THREE scenarios with DIFFERENT growth assumptions:
 
 SCENARIO 1 - CONSERVATIVE (Market headwinds, slower adoption):
