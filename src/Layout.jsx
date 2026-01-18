@@ -14,7 +14,8 @@ import {
   X,
   LogOut,
   Settings,
-  Sparkles
+  Sparkles,
+  BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -24,6 +25,10 @@ const stages = [
   { id: 3, name: 'The Engine', subtitle: 'Growth & Pitching', icon: Rocket, page: 'Stage3Engine', color: 'from-emerald-500 to-teal-500' },
   { id: 4, name: 'The Quant', subtitle: 'Financial Engineering', icon: Calculator, page: 'Stage4Quant', color: 'from-amber-500 to-orange-500' },
   { id: 5, name: 'The Exit Vault', subtitle: 'Due Diligence', icon: Shield, page: 'Stage5Exit', color: 'from-rose-500 to-pink-500' },
+];
+
+const utilityPages = [
+  { name: 'Analytics', page: 'Analytics', icon: BarChart3 },
 ];
 
 export default function Layout({ children, currentPageName }) {
@@ -212,6 +217,36 @@ function SidebarContent({ currentPageName, currentStage, currentBusiness, collap
           </div>
           {!collapsed && <span className="font-medium">Dashboard</span>}
         </Link>
+      </div>
+
+      {/* Analytics & Utilities */}
+      <div>
+        {!collapsed && <p className="text-xs text-zinc-500 uppercase tracking-wider px-3 mb-2">Analytics</p>}
+        <div className="space-y-1">
+          {utilityPages.map((page) => {
+            const Icon = page.icon;
+            const isActive = currentPageName === page.page;
+            return (
+              <Link
+                key={page.page}
+                to={createPageUrl(page.page)}
+                onClick={onNavigate}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
+                  isActive ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white hover:bg-white/5"
+                )}
+              >
+                <div className={cn(
+                  "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+                  isActive ? "bg-gradient-to-br from-blue-500 to-cyan-500" : "bg-white/5"
+                )}>
+                  <Icon className="w-4 h-4" />
+                </div>
+                {!collapsed && <span className="font-medium">{page.name}</span>}
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       {/* Stage Navigation */}

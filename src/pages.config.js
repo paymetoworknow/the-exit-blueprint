@@ -5,6 +5,7 @@ import Stage2Architect from './pages/Stage2Architect';
 import Stage3Engine from './pages/Stage3Engine';
 import Stage5Exit from './pages/Stage5Exit';
 import Settings from './pages/Settings';
+import Analytics from './pages/Analytics';
 import __Layout from './Layout.jsx';
 
 
@@ -16,6 +17,7 @@ export const PAGES = {
     "Stage3Engine": Stage3Engine,
     "Stage5Exit": Stage5Exit,
     "Settings": Settings,
+    "Analytics": Analytics,
 }
 
 export const pagesConfig = {
