@@ -4,7 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Rocket, Presentation, Users, Plus, Edit, Trash2,
   Mail, Phone, Building, Calendar, Save, Sparkles,
-  ChevronLeft, ChevronRight, Eye, Loader2, UserPlus
+  ChevronLeft, ChevronRight, Eye, Loader2, UserPlus,
+  Search, Send, ExternalLink, TrendingUp, Filter,
+  CheckCircle, Globe, DollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +40,8 @@ export default function Stage3Engine() {
   const [activeTab, setActiveTab] = useState('pitch');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [investorSearchResults, setInvestorSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   const { data: businesses, isLoading: loadingBusiness } = useQuery({
     queryKey: ['businesses'],
@@ -210,6 +214,10 @@ Create compelling slide content for each slide. Include specific numbers and dat
             <Presentation className="w-4 h-4 mr-2" />
             Pitch Deck
           </TabsTrigger>
+          <TabsTrigger value="investors" className="data-[state=active]:bg-white/10">
+            <TrendingUp className="w-4 h-4 mr-2" />
+            Investor Network
+          </TabsTrigger>
           <TabsTrigger value="crm" className="data-[state=active]:bg-white/10">
             <Users className="w-4 h-4 mr-2" />
             Growth CRM
@@ -241,6 +249,19 @@ Create compelling slide content for each slide. Include specific numbers and dat
               </Button>
             </GlassCard>
           )}
+        </TabsContent>
+
+        <TabsContent value="investors">
+          <InvestorNetwork 
+            businessId={currentBusiness?.id}
+            business={currentBusiness}
+            pitchDeck={currentDeck}
+            queryClient={queryClient}
+            searchResults={investorSearchResults}
+            setSearchResults={setInvestorSearchResults}
+            isSearching={isSearching}
+            setIsSearching={setIsSearching}
+          />
         </TabsContent>
 
         <TabsContent value="crm">
@@ -646,5 +667,377 @@ function LeadForm({ onSubmit, isLoading, initialData }) {
         Add Lead
       </Button>
     </form>
+  );
+}
+
+function InvestorNetwork({ businessId, business, pitchDeck, queryClient, searchResults, setSearchResults, isSearching, setIsSearching }) {
+  const [filters, setFilters] = useState({
+    industry: business?.industry || '',
+    funding_stage: 'seed',
+    min_check_size: 0,
+    search_query: ''
+  });
+  const [selectedInvestor, setSelectedInvestor] = useState(null);
+  const [isPitching, setIsPitching] = useState(false);
+
+  const fundingStages = [
+    { value: 'pre_seed', label: 'Pre-Seed' },
+    { value: 'seed', label: 'Seed' },
+    { value: 'series_a', label: 'Series A' },
+    { value: 'series_b', label: 'Series B' },
+    { value: 'series_c', label: 'Series C' },
+    { value: 'growth', label: 'Growth' },
+  ];
+
+  const handleSearch = async () => {
+    setIsSearching(true);
+    try {
+      const result = await base44.functions.invoke('searchInvestors', filters);
+      setSearchResults(result.data.investors || []);
+    } catch (error) {
+      console.error('Search failed:', error);
+    }
+    setIsSearching(false);
+  };
+
+  const handlePitch = async (investor, customMessage) => {
+    setIsPitching(true);
+    try {
+      // Extract pitch deck summary
+      const firstSlide = pitchDeck?.slides?.[0];
+      const pitchSummary = {
+        industry: business?.industry,
+        problem: business?.problem_statement,
+        solution: business?.solution,
+        market_size: `TAM/SAM/SOM Analysis Available`,
+        traction: `${firstSlide?.content?.[0] || 'Early traction'}`,
+        team: 'Experienced founding team'
+      };
+
+      // Send pitch email
+      await base44.functions.invoke('sendPitchEmail', {
+        investor_email: investor.email,
+        investor_name: investor.partner,
+        business_name: business?.business_name,
+        tagline: business?.tagline,
+        pitch_deck_summary: pitchSummary,
+        custom_message: customMessage
+      });
+
+      // Add to CRM
+      await base44.entities.CRMLead.create({
+        business_id: businessId,
+        name: investor.partner,
+        company: investor.name,
+        email: investor.email,
+        lead_type: 'investor',
+        status: 'contacted',
+        deal_size: investor.check_size_min,
+        notes: `Pitched via Investor Network on ${new Date().toLocaleDateString()}. Investment thesis: ${investor.investment_thesis}`
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      setSelectedInvestor(null);
+    } catch (error) {
+      console.error('Pitch failed:', error);
+    }
+    setIsPitching(false);
+  };
+
+  React.useEffect(() => {
+    if (business?.industry) {
+      handleSearch();
+    }
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      {/* Search Filters */}
+      <GlassCard className="p-6">
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <Filter className="w-5 h-5 text-emerald-400" />
+          Search Criteria
+        </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <div>
+            <Label className="text-zinc-400">Industry</Label>
+            <Select 
+              value={filters.industry} 
+              onValueChange={v => setFilters(p => ({ ...p, industry: v }))}
+            >
+              <SelectTrigger className="mt-1.5 bg-white/5 border-white/10">
+                <SelectValue placeholder="Select industry" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="saas">SaaS</SelectItem>
+                <SelectItem value="ecommerce">E-Commerce</SelectItem>
+                <SelectItem value="fintech">FinTech</SelectItem>
+                <SelectItem value="healthtech">HealthTech</SelectItem>
+                <SelectItem value="edtech">EdTech</SelectItem>
+                <SelectItem value="marketplace">Marketplace</SelectItem>
+                <SelectItem value="consumer">Consumer</SelectItem>
+                <SelectItem value="enterprise">Enterprise</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-zinc-400">Funding Stage</Label>
+            <Select 
+              value={filters.funding_stage} 
+              onValueChange={v => setFilters(p => ({ ...p, funding_stage: v }))}
+            >
+              <SelectTrigger className="mt-1.5 bg-white/5 border-white/10">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {fundingStages.map(stage => (
+                  <SelectItem key={stage.value} value={stage.value}>{stage.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label className="text-zinc-400">Min Check Size ($)</Label>
+            <Input
+              type="number"
+              value={filters.min_check_size}
+              onChange={e => setFilters(p => ({ ...p, min_check_size: parseFloat(e.target.value) || 0 }))}
+              className="mt-1.5 bg-white/5 border-white/10"
+              placeholder="0"
+            />
+          </div>
+
+          <div>
+            <Label className="text-zinc-400">Search</Label>
+            <div className="flex gap-2 mt-1.5">
+              <Input
+                value={filters.search_query}
+                onChange={e => setFilters(p => ({ ...p, search_query: e.target.value }))}
+                className="bg-white/5 border-white/10"
+                placeholder="Name, portfolio..."
+              />
+              <Button 
+                onClick={handleSearch}
+                disabled={isSearching}
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 shrink-0"
+              >
+                {isSearching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </GlassCard>
+
+      {/* Results Summary */}
+      {searchResults.length > 0 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-zinc-400">
+            Found <span className="text-white font-medium">{searchResults.length}</span> matching investors
+          </p>
+          <Badge className="bg-emerald-500/20 text-emerald-400">
+            {filters.industry.toUpperCase()} • {filters.funding_stage.replace('_', '-').toUpperCase()}
+          </Badge>
+        </div>
+      )}
+
+      {/* Investor Cards */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        {isSearching ? (
+          <div className="col-span-2 flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+          </div>
+        ) : searchResults.length === 0 ? (
+          <GlassCard className="col-span-2 p-12 text-center">
+            <Search className="w-12 h-12 text-zinc-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Investors Found</h3>
+            <p className="text-zinc-500">Try adjusting your search criteria</p>
+          </GlassCard>
+        ) : (
+          searchResults.map((investor) => (
+            <GlassCard key={investor.id} className="p-5 hover:bg-white/5 transition-colors">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <h4 className="font-semibold text-lg flex items-center gap-2">
+                    {investor.name}
+                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 text-xs">
+                      {investor.relevance_score}% match
+                    </Badge>
+                  </h4>
+                  <p className="text-sm text-zinc-400">{investor.partner}</p>
+                </div>
+                <a 
+                  href={investor.website} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-zinc-500 hover:text-white transition-colors"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
+
+              <p className="text-sm text-zinc-400 mb-3 line-clamp-2">
+                {investor.investment_thesis}
+              </p>
+
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <div className="p-2 rounded-lg bg-white/5">
+                  <p className="text-xs text-zinc-500">Check Size</p>
+                  <p className="text-sm font-medium">
+                    ${(investor.check_size_min / 1000000).toFixed(1)}M - ${(investor.check_size_max / 1000000).toFixed(0)}M
+                  </p>
+                </div>
+                <div className="p-2 rounded-lg bg-white/5">
+                  <p className="text-xs text-zinc-500">Location</p>
+                  <p className="text-sm font-medium">{investor.location}</p>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <p className="text-xs text-zinc-500 mb-1">Portfolio</p>
+                <div className="flex flex-wrap gap-1">
+                  {investor.portfolio_companies.slice(0, 3).map((company, idx) => (
+                    <Badge key={idx} variant="outline" className="border-white/10 text-xs">
+                      {company}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button 
+                      className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500"
+                      onClick={() => setSelectedInvestor(investor)}
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      Pitch
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="bg-[#12121a] border-white/10 max-w-2xl">
+                    <DialogHeader>
+                      <DialogTitle>Send Pitch to {investor.name}</DialogTitle>
+                    </DialogHeader>
+                    <PitchDialog 
+                      investor={investor}
+                      business={business}
+                      onSend={handlePitch}
+                      isPitching={isPitching}
+                    />
+                  </DialogContent>
+                </Dialog>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="border-white/10"
+                  onClick={async () => {
+                    await base44.entities.CRMLead.create({
+                      business_id: businessId,
+                      name: investor.partner,
+                      company: investor.name,
+                      email: investor.email,
+                      lead_type: 'investor',
+                      status: 'new',
+                      deal_size: investor.check_size_min,
+                      notes: `Added from Investor Network. ${investor.investment_thesis}`
+                    });
+                    queryClient.invalidateQueries({ queryKey: ['leads'] });
+                  }}
+                >
+                  <UserPlus className="w-4 h-4" />
+                </Button>
+              </div>
+            </GlassCard>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PitchDialog({ investor, business, onSend, isPitching }) {
+  const [customMessage, setCustomMessage] = useState('');
+  const [emailPreview, setEmailPreview] = useState(true);
+
+  const defaultMessage = `I've been following ${investor.name}'s portfolio and believe ${business?.business_name} aligns perfectly with your investment thesis in ${business?.industry}. We're solving a critical problem in this space with proven early traction.`;
+
+  return (
+    <div className="space-y-4">
+      <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+        <div className="flex items-start gap-3">
+          <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-emerald-400">What happens when you pitch:</p>
+            <ul className="text-sm text-zinc-400 mt-2 space-y-1">
+              <li>• Professional email sent to {investor.partner} at {investor.email}</li>
+              <li>• Investor automatically added to your CRM as "Contacted"</li>
+              <li>• Pitch includes your business summary and key metrics</li>
+              <li>• Outreach logged with timestamp for follow-up tracking</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <Label className="text-zinc-400">Investor Details</Label>
+        <div className="mt-2 p-3 rounded-lg bg-white/5 space-y-1">
+          <p className="font-medium">{investor.name}</p>
+          <p className="text-sm text-zinc-400">{investor.partner} • {investor.email}</p>
+          <p className="text-sm text-zinc-500 line-clamp-2">{investor.investment_thesis}</p>
+        </div>
+      </div>
+
+      <div>
+        <Label className="text-zinc-400">Custom Message (Optional)</Label>
+        <Textarea
+          value={customMessage}
+          onChange={e => setCustomMessage(e.target.value)}
+          placeholder={defaultMessage}
+          className="mt-1.5 bg-white/5 border-white/10 min-h-[100px]"
+        />
+        <p className="text-xs text-zinc-500 mt-1">
+          Add a personal touch. Default message will be used if blank.
+        </p>
+      </div>
+
+      {emailPreview && (
+        <div className="p-4 rounded-lg bg-white/5 border border-white/10">
+          <p className="text-xs text-zinc-500 mb-2">EMAIL PREVIEW</p>
+          <div className="text-sm text-zinc-300 space-y-2">
+            <p><strong>To:</strong> {investor.email}</p>
+            <p><strong>Subject:</strong> Investment Opportunity: {business?.business_name}</p>
+            <div className="pt-2 border-t border-white/10 text-xs">
+              <p>Dear {investor.partner},</p>
+              <p className="mt-2">{customMessage || defaultMessage}</p>
+              <p className="mt-2 text-zinc-500">
+                [Key highlights and metrics will be included automatically]
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex gap-3 pt-2">
+        <Button
+          onClick={() => onSend(investor, customMessage || defaultMessage)}
+          disabled={isPitching}
+          className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500"
+        >
+          {isPitching ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              Sending Pitch...
+            </>
+          ) : (
+            <>
+              <Send className="w-4 h-4 mr-2" />
+              Send Pitch Email
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
   );
 }
