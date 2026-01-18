@@ -5,8 +5,9 @@ import {
   Calculator, DollarSign, TrendingUp, TrendingDown, 
   Users, Target, Percent, PiggyBank, Save,
   ArrowUpRight, ArrowDownRight, Wallet, LineChart,
-  Loader2, AlertCircle, CheckCircle
+  Loader2, AlertCircle, CheckCircle, Sparkles, BarChart3
 } from 'lucide-react';
+import { LineChart as RechartsLine, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,6 +31,15 @@ const INDUSTRY_MULTIPLIERS = {
 
 export default function Stage4Quant() {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState('current');
+  const [projections, setProjections] = useState(null);
+  const [isGeneratingProjections, setIsGeneratingProjections] = useState(false);
+  const [growthAssumptions, setGrowthAssumptions] = useState({
+    revenue_growth_y1: 100,
+    revenue_growth_y2: 80,
+    revenue_growth_y3: 60,
+    margin_improvement: 5,
+  });
 
   const { data: businesses, isLoading: loadingBusiness } = useQuery({
     queryKey: ['businesses'],
@@ -42,8 +52,15 @@ export default function Stage4Quant() {
     enabled: !!businesses?.[0],
   });
 
+  const { data: marketAnalysis } = useQuery({
+    queryKey: ['market-analysis'],
+    queryFn: () => base44.entities.MarketAnalysis.list('-created_date', 1),
+    enabled: !!businesses?.[0],
+  });
+
   const currentBusiness = businesses?.[0];
   const currentFinancials = financials?.[0];
+  const currentMarket = marketAnalysis?.[0];
   const industry = currentBusiness?.industry || 'other';
 
   const [formData, setFormData] = useState({
@@ -174,6 +191,87 @@ export default function Stage4Quant() {
     return `$${num.toFixed(0)}`;
   };
 
+  const generateProjections = async () => {
+    setIsGeneratingProjections(true);
+    try {
+      const prompt = `Generate detailed 5-year financial projections for ${currentBusiness?.business_name}:
+
+CURRENT FINANCIALS:
+Annual Revenue: $${calculations.annual_revenue}
+Monthly Revenue: $${formData.monthly_revenue}
+Monthly Burn: $${formData.monthly_burn}
+Gross Margin: ${formData.gross_margin}%
+Customer Count: ${formData.customer_count}
+ARPU: $${calculations.customer_arpu}
+CAC: $${formData.cac}
+Churn Rate: ${formData.churn_rate}%
+
+MARKET DATA:
+Industry: ${currentBusiness?.industry}
+Market Growth Rate: ${currentMarket?.market_growth_rate || 15}% annually
+TAM: $${currentMarket?.tam || 0}
+
+GROWTH ASSUMPTIONS:
+Year 1 Revenue Growth: ${growthAssumptions.revenue_growth_y1}%
+Year 2 Revenue Growth: ${growthAssumptions.revenue_growth_y2}%
+Year 3 Revenue Growth: ${growthAssumptions.revenue_growth_y3}%
+Margin Improvement: ${growthAssumptions.margin_improvement}% annually
+
+Generate 5 years of projections (Year 0 = current, Years 1-5 = projections) with:
+1. Revenue (compound growth based on assumptions)
+2. Cost of Revenue (inverse of gross margin, improving annually)
+3. Operating Expenses (grows with revenue but at decreasing rate)
+4. EBITDA (Revenue - COGS - OpEx)
+5. Net Income (EBITDA - taxes at 25%)
+6. Cash Flow (Net Income + depreciation estimate)
+7. Customer Count (based on revenue/ARPU with improving churn)
+8. Key metrics per year
+
+Be realistic and base projections on the current state and industry standards.`;
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            years: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  year: { type: "string" },
+                  revenue: { type: "number" },
+                  cogs: { type: "number" },
+                  operating_expenses: { type: "number" },
+                  ebitda: { type: "number" },
+                  net_income: { type: "number" },
+                  cash_flow: { type: "number" },
+                  customer_count: { type: "number" },
+                  gross_margin_percent: { type: "number" },
+                  revenue_growth_percent: { type: "number" }
+                }
+              }
+            },
+            assumptions: {
+              type: "object",
+              properties: {
+                revenue_cagr: { type: "number" },
+                target_margin: { type: "number" },
+                breakeven_year: { type: "string" },
+                year_5_valuation: { type: "number" }
+              }
+            }
+          }
+        }
+      });
+
+      setProjections(result);
+    } catch (error) {
+      console.error('Projection generation failed:', error);
+    }
+    setIsGeneratingProjections(false);
+  };
+
   return (
     <div className="max-w-6xl mx-auto">
       <StageHeader
@@ -197,8 +295,33 @@ export default function Stage4Quant() {
         </Button>
       </StageHeader>
 
-      {/* Valuation Hero Card */}
-      <GlassCard className="p-8 mb-8 bg-gradient-to-br from-amber-500/10 to-orange-600/10 border-amber-500/20">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-8">
+        <TabsList className="bg-white/5 border border-white/10">
+          <TabsTrigger value="current" className="data-[state=active]:bg-white/10">
+            <Calculator className="w-4 h-4 mr-2" />
+            Current Metrics
+          </TabsTrigger>
+          <TabsTrigger value="projections" className="data-[state=active]:bg-white/10">
+            <BarChart3 className="w-4 h-4 mr-2" />
+            5-Year Projections
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {activeTab === 'projections' ? (
+        <ProjectionsView
+          projections={projections}
+          isGenerating={isGeneratingProjections}
+          onGenerate={generateProjections}
+          growthAssumptions={growthAssumptions}
+          setGrowthAssumptions={setGrowthAssumptions}
+          currentRevenue={calculations.annual_revenue}
+          formatCurrency={formatCurrency}
+        />
+      ) : (
+        <>
+          {/* Valuation Hero Card */}
+          <GlassCard className="p-8 mb-8 bg-gradient-to-br from-amber-500/10 to-orange-600/10 border-amber-500/20">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           <div>
             <p className="text-sm text-amber-400 uppercase tracking-wider mb-1">Current Market Valuation</p>
@@ -416,6 +539,240 @@ export default function Stage4Quant() {
           ))}
         </div>
       </GlassCard>
+        </>
+      )}
+    </div>
+  );
+}
+
+function ProjectionsView({ projections, isGenerating, onGenerate, growthAssumptions, setGrowthAssumptions, currentRevenue, formatCurrency }) {
+  if (!projections && !isGenerating) {
+    return (
+      <div className="space-y-6">
+        <GlassCard className="p-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-amber-400" />
+            Growth Assumptions
+          </h3>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <Label className="text-zinc-400">Year 1 Growth (%)</Label>
+              <Input
+                type="number"
+                value={growthAssumptions.revenue_growth_y1}
+                onChange={e => setGrowthAssumptions(p => ({ ...p, revenue_growth_y1: parseFloat(e.target.value) || 0 }))}
+                className="mt-1.5 bg-white/5 border-white/10"
+              />
+            </div>
+            <div>
+              <Label className="text-zinc-400">Year 2 Growth (%)</Label>
+              <Input
+                type="number"
+                value={growthAssumptions.revenue_growth_y2}
+                onChange={e => setGrowthAssumptions(p => ({ ...p, revenue_growth_y2: parseFloat(e.target.value) || 0 }))}
+                className="mt-1.5 bg-white/5 border-white/10"
+              />
+            </div>
+            <div>
+              <Label className="text-zinc-400">Year 3+ Growth (%)</Label>
+              <Input
+                type="number"
+                value={growthAssumptions.revenue_growth_y3}
+                onChange={e => setGrowthAssumptions(p => ({ ...p, revenue_growth_y3: parseFloat(e.target.value) || 0 }))}
+                className="mt-1.5 bg-white/5 border-white/10"
+              />
+            </div>
+            <div>
+              <Label className="text-zinc-400">Margin Improvement (%/yr)</Label>
+              <Input
+                type="number"
+                value={growthAssumptions.margin_improvement}
+                onChange={e => setGrowthAssumptions(p => ({ ...p, margin_improvement: parseFloat(e.target.value) || 0 }))}
+                className="mt-1.5 bg-white/5 border-white/10"
+              />
+            </div>
+          </div>
+        </GlassCard>
+
+        <GlassCard className="p-12 text-center">
+          <BarChart3 className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold mb-2">Generate Financial Projections</h3>
+          <p className="text-zinc-500 mb-6 max-w-md mx-auto">
+            AI will create detailed 5-year projections based on your current metrics, market data, and growth assumptions.
+          </p>
+          <Button
+            onClick={onGenerate}
+            className="bg-gradient-to-r from-amber-500 to-orange-500"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            Generate Projections
+          </Button>
+        </GlassCard>
+      </div>
+    );
+  }
+
+  if (isGenerating) {
+    return (
+      <GlassCard className="p-12 text-center">
+        <Loader2 className="w-12 h-12 animate-spin text-amber-500 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Generating Projections...</h3>
+        <p className="text-zinc-500">Analyzing your data and modeling future scenarios</p>
+      </GlassCard>
+    );
+  }
+
+  const chartData = projections.years.map(y => ({
+    year: y.year,
+    Revenue: y.revenue,
+    EBITDA: y.ebitda,
+    'Net Income': y.net_income,
+    'Cash Flow': y.cash_flow,
+  }));
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <GlassCard className="p-4 bg-gradient-to-br from-emerald-500/10 to-teal-600/10">
+          <p className="text-xs text-zinc-400 mb-1">Revenue CAGR</p>
+          <p className="text-2xl font-bold text-emerald-400">{projections.assumptions.revenue_cagr?.toFixed(1)}%</p>
+        </GlassCard>
+        <GlassCard className="p-4 bg-gradient-to-br from-violet-500/10 to-purple-600/10">
+          <p className="text-xs text-zinc-400 mb-1">Year 5 Revenue</p>
+          <p className="text-2xl font-bold text-violet-400">{formatCurrency(projections.years[5]?.revenue)}</p>
+        </GlassCard>
+        <GlassCard className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-600/10">
+          <p className="text-xs text-zinc-400 mb-1">Breakeven</p>
+          <p className="text-2xl font-bold text-blue-400">{projections.assumptions.breakeven_year || 'N/A'}</p>
+        </GlassCard>
+        <GlassCard className="p-4 bg-gradient-to-br from-amber-500/10 to-orange-600/10">
+          <p className="text-xs text-zinc-400 mb-1">Year 5 Valuation</p>
+          <p className="text-2xl font-bold text-amber-400">{formatCurrency(projections.assumptions.year_5_valuation)}</p>
+        </GlassCard>
+      </div>
+
+      {/* Revenue Chart */}
+      <GlassCard className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Revenue & Profitability Projection</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <AreaChart data={chartData}>
+            <defs>
+              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#10B981" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#10B981" stopOpacity={0}/>
+              </linearGradient>
+              <linearGradient id="colorEBITDA" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+            <XAxis dataKey="year" stroke="#71717A" />
+            <YAxis stroke="#71717A" tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#18181B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+              formatter={(value) => formatCurrency(value)}
+            />
+            <Legend />
+            <Area type="monotone" dataKey="Revenue" stroke="#10B981" fillOpacity={1} fill="url(#colorRevenue)" />
+            <Area type="monotone" dataKey="EBITDA" stroke="#8B5CF6" fillOpacity={1} fill="url(#colorEBITDA)" />
+          </AreaChart>
+        </ResponsiveContainer>
+      </GlassCard>
+
+      {/* Cash Flow Chart */}
+      <GlassCard className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Cash Flow Projection</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+            <XAxis dataKey="year" stroke="#71717A" />
+            <YAxis stroke="#71717A" tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#18181B', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+              formatter={(value) => formatCurrency(value)}
+            />
+            <Legend />
+            <Bar dataKey="Cash Flow" fill="#3B82F6" />
+            <Bar dataKey="Net Income" fill="#14B8A6" />
+          </BarChart>
+        </ResponsiveContainer>
+      </GlassCard>
+
+      {/* Detailed Table */}
+      <GlassCard className="p-6 overflow-x-auto">
+        <h3 className="text-lg font-semibold mb-4">Detailed Financial Projections</h3>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-white/10">
+              <th className="text-left py-3 px-2 text-zinc-400 font-medium">Metric</th>
+              {projections.years.map((y, idx) => (
+                <th key={idx} className="text-right py-3 px-2 text-zinc-400 font-medium">{y.year}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b border-white/10">
+              <td className="py-3 px-2 font-medium">Revenue</td>
+              {projections.years.map((y, idx) => (
+                <td key={idx} className="text-right py-3 px-2">{formatCurrency(y.revenue)}</td>
+              ))}
+            </tr>
+            <tr className="border-b border-white/10">
+              <td className="py-3 px-2 text-zinc-400">COGS</td>
+              {projections.years.map((y, idx) => (
+                <td key={idx} className="text-right py-3 px-2 text-zinc-400">{formatCurrency(y.cogs)}</td>
+              ))}
+            </tr>
+            <tr className="border-b border-white/10">
+              <td className="py-3 px-2 text-zinc-400">Operating Expenses</td>
+              {projections.years.map((y, idx) => (
+                <td key={idx} className="text-right py-3 px-2 text-zinc-400">{formatCurrency(y.operating_expenses)}</td>
+              ))}
+            </tr>
+            <tr className="border-b border-white/10">
+              <td className="py-3 px-2 font-medium">EBITDA</td>
+              {projections.years.map((y, idx) => (
+                <td key={idx} className={`text-right py-3 px-2 font-medium ${y.ebitda >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {formatCurrency(y.ebitda)}
+                </td>
+              ))}
+            </tr>
+            <tr className="border-b border-white/10">
+              <td className="py-3 px-2 font-medium">Net Income</td>
+              {projections.years.map((y, idx) => (
+                <td key={idx} className={`text-right py-3 px-2 font-medium ${y.net_income >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                  {formatCurrency(y.net_income)}
+                </td>
+              ))}
+            </tr>
+            <tr className="border-b border-white/10">
+              <td className="py-3 px-2">Gross Margin %</td>
+              {projections.years.map((y, idx) => (
+                <td key={idx} className="text-right py-3 px-2">{y.gross_margin_percent?.toFixed(1)}%</td>
+              ))}
+            </tr>
+            <tr className="border-b border-white/10">
+              <td className="py-3 px-2">Customers</td>
+              {projections.years.map((y, idx) => (
+                <td key={idx} className="text-right py-3 px-2">{y.customer_count?.toLocaleString()}</td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </GlassCard>
+
+      <div className="flex justify-end">
+        <Button
+          onClick={onGenerate}
+          variant="outline"
+          className="border-white/10"
+        >
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Regenerate
+        </Button>
+      </div>
     </div>
   );
 }
