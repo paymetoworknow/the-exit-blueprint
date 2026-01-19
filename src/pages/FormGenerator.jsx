@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { 
   FileText, Sparkles, Loader2, Download, Search, 
-  Briefcase, Users, DollarSign, Shield, FileCheck
+  Briefcase, Users, DollarSign, Shield, FileCheck, Printer
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -153,6 +153,14 @@ export default function FormGenerator() {
 
   return (
     <div className="max-w-7xl mx-auto">
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .print-document, .print-document * { visibility: visible; }
+          .print-document { position: absolute; left: 0; top: 0; width: 100%; padding: 40px; }
+          .no-print { display: none !important; }
+        }
+      `}</style>
       <StageHeader
         stageNumber="AI"
         title="Form & Document Generator"
@@ -224,13 +232,17 @@ export default function FormGenerator() {
             <GlassCard className="p-6 sticky top-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold">Generated Document</h3>
-                <Button onClick={exportDocument} size="sm" className="bg-gradient-to-r from-indigo-500 to-blue-600">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={() => window.print()} size="sm" variant="outline" className="border-white/10">
+                    <Printer className="w-4 h-4" />
+                  </Button>
+                  <Button onClick={exportDocument} size="sm" className="bg-gradient-to-r from-indigo-500 to-blue-600">
+                    <Download className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 print-document">
                 <div>
                   <p className="text-sm text-zinc-500 mb-1">Form Type</p>
                   <p className="font-medium">{generatedDocument.form_type}</p>
@@ -241,14 +253,15 @@ export default function FormGenerator() {
                   <p className="font-medium">{generatedDocument.document_title}</p>
                 </div>
 
-                <div className="p-4 rounded-lg bg-white/5 border border-white/10 max-h-96 overflow-y-auto">
+                <div className="p-4 rounded-lg bg-white/5 border border-white/10 max-h-96 overflow-y-auto print:max-h-none print:border-0 print:bg-transparent">
                   <p className="text-sm text-zinc-300 whitespace-pre-wrap leading-relaxed">
-                    {generatedDocument.document_content.substring(0, 500)}...
+                    <span className="print:hidden">{generatedDocument.document_content.substring(0, 500)}...</span>
+                    <span className="hidden print:inline">{generatedDocument.document_content}</span>
                   </p>
                 </div>
 
                 {generatedDocument.customization_notes?.length > 0 && (
-                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 no-print">
                     <p className="text-xs font-semibold text-amber-400 mb-2">Customization Required:</p>
                     <ul className="space-y-1">
                       {generatedDocument.customization_notes.map((note, idx) => (
@@ -258,7 +271,7 @@ export default function FormGenerator() {
                   </div>
                 )}
 
-                <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 no-print">
                   <p className="text-xs font-semibold text-blue-400 mb-1">Instructions:</p>
                   <p className="text-xs text-zinc-300">{generatedDocument.instructions}</p>
                 </div>

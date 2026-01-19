@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
   FileText, Sparkles, Loader2, Download, CheckCircle,
-  Building2, TrendingUp, Users, DollarSign, Target, Shield
+  Building2, TrendingUp, Users, DollarSign, Target, Shield, Printer
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -249,6 +249,16 @@ Write in a professional, compelling tone. Use specific data points. Make it inve
 
   return (
     <div className="max-w-5xl mx-auto">
+      <style>{`
+        @media print {
+          body * { visibility: hidden; }
+          .print-content, .print-content * { visibility: visible; }
+          .print-content { position: absolute; left: 0; top: 0; width: 100%; }
+          .no-print { display: none !important; }
+          .print-section { page-break-after: always; }
+          .print-section:last-child { page-break-after: auto; }
+        }
+      `}</style>
       <StageHeader
         stageNumber="AI"
         title="Business Plan Generator"
@@ -257,14 +267,24 @@ Write in a professional, compelling tone. Use specific data points. Make it inve
         gradient="from-indigo-500 to-blue-600"
       >
         {businessPlan && (
-          <Button
-            onClick={exportToPDF}
-            variant="outline"
-            className="border-white/10"
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Export Plan
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => window.print()}
+              variant="outline"
+              className="border-white/10"
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              Print
+            </Button>
+            <Button
+              onClick={exportToPDF}
+              variant="outline"
+              className="border-white/10"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+          </div>
         )}
       </StageHeader>
 
@@ -381,9 +401,9 @@ Write in a professional, compelling tone. Use specific data points. Make it inve
       )}
 
       {businessPlan && (
-        <div className="space-y-6">
+        <div className="space-y-6 print-content">
           {/* Header Card */}
-          <GlassCard className="p-6 bg-gradient-to-br from-indigo-500/10 to-blue-600/10 border-indigo-500/20">
+          <GlassCard className="p-6 bg-gradient-to-br from-indigo-500/10 to-blue-600/10 border-indigo-500/20 print-section">
             <h2 className="text-2xl font-bold mb-1">{businessPlan.document_title}</h2>
             <p className="text-lg text-zinc-400 mb-2">{businessPlan.business_name}</p>
             <div className="flex items-center gap-4">
@@ -401,7 +421,7 @@ Write in a professional, compelling tone. Use specific data points. Make it inve
           {sections.map((section, idx) => {
             const Icon = section.icon;
             return (
-              <GlassCard key={idx} className="p-6">
+              <GlassCard key={idx} className="p-6 print-section">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/20 to-blue-600/20 flex items-center justify-center">
                     <Icon className="w-5 h-5 text-indigo-400" />
@@ -418,7 +438,15 @@ Write in a professional, compelling tone. Use specific data points. Make it inve
           })}
 
           {/* Export Button */}
-          <div className="flex justify-center">
+          <div className="flex justify-center gap-3 no-print">
+            <Button
+              onClick={() => window.print()}
+              variant="outline"
+              className="border-white/10"
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              Print Business Plan
+            </Button>
             <Button
               onClick={exportToPDF}
               className="bg-gradient-to-r from-indigo-500 to-blue-600"
