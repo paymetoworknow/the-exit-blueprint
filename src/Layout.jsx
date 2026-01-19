@@ -34,6 +34,7 @@ const utilityPages = [
   { name: 'Risk Analysis', page: 'RiskAnalysis', icon: Shield },
   { name: 'Collaboration', page: 'Collaboration', icon: Users },
   { name: 'Decision Assistant', page: 'DecisionAssistant', icon: Zap },
+  { name: 'Brand Audit', page: 'BrandAudit', icon: Sparkles },
 ];
 
 export default function Layout({ children, currentPageName }) {

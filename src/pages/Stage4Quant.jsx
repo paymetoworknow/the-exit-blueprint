@@ -392,12 +392,24 @@ Calculate industry-standard valuation multiplier for Year 5.`;
           </TabsTrigger>
           <TabsTrigger value="projections" className="data-[state=active]:bg-white/10">
             <BarChart3 className="w-4 h-4 mr-2" />
-            5-Year Projections
+            Scenario Projections
+          </TabsTrigger>
+          <TabsTrigger value="sensitivity" className="data-[state=active]:bg-white/10">
+            <GitBranch className="w-4 h-4 mr-2" />
+            Sensitivity Analysis
           </TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {activeTab === 'projections' ? (
+      {activeTab === 'sensitivity' ? (
+        <SensitivityAnalysisView
+          formData={formData}
+          calculations={calculations}
+          formatCurrency={formatCurrency}
+          currentBusiness={currentBusiness}
+          currentMarket={currentMarket}
+        />
+      ) : activeTab === 'projections' ? (
         <ScenariosView
           scenarios={scenarios}
           isGenerating={isGeneratingProjections}
@@ -1012,5 +1024,191 @@ function MetricCard({ label, value, icon: Icon, gradient }) {
       </div>
       <p className="text-xl font-bold">{value}</p>
     </GlassCard>
+  );
+}
+
+function SensitivityAnalysisView({ formData, calculations, formatCurrency, currentBusiness, currentMarket }) {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [sensitivityResults, setSensitivityResults] = useState(null);
+
+  const runSensitivityAnalysis = async () => {
+    setIsAnalyzing(true);
+    try {
+      const prompt = `Perform sensitivity analysis on key financial metrics for ${currentBusiness?.business_name}:
+
+CURRENT BASELINE METRICS:
+Monthly Revenue: $${formData.monthly_revenue}
+CAC: $${formData.cac}
+ARPU: $${calculations.customer_arpu}
+Churn Rate: ${formData.churn_rate}%
+Gross Margin: ${formData.gross_margin}%
+Customer Count: ${formData.customer_count}
+
+Calculate impact of these changes on LTV, LTV/CAC ratio, and annual revenue:
+
+1. CAC increases by 10%
+2. CAC decreases by 10%
+3. ARPU increases by 10%
+4. ARPU decreases by 10%
+5. Churn rate increases by 1 percentage point
+6. Churn rate decreases by 1 percentage point
+7. Gross margin improves by 5 percentage points
+8. Customer growth accelerates 20%
+
+For EACH scenario, calculate:
+- New LTV
+- New LTV/CAC ratio
+- Revenue impact (annual)
+- Valuation impact (using ${calculations.valuation_multiplier}x multiplier)
+- Overall business health impact (positive/neutral/negative)
+- Strategic recommendation`;
+
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt,
+        response_json_schema: {
+          type: "object",
+          properties: {
+            scenarios: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  scenario_name: { type: "string" },
+                  metric_changed: { type: "string" },
+                  new_ltv: { type: "number" },
+                  new_ltv_cac_ratio: { type: "number" },
+                  revenue_impact: { type: "number" },
+                  valuation_impact: { type: "number" },
+                  health_impact: { type: "string" },
+                  recommendation: { type: "string" }
+                }
+              }
+            }
+          }
+        }
+      });
+
+      setSensitivityResults(result);
+    } catch (error) {
+      console.error('Sensitivity analysis failed:', error);
+    }
+    setIsAnalyzing(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      <GlassCard className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold">Sensitivity Analysis</h3>
+            <p className="text-sm text-zinc-400">
+              Understand how changes in key metrics impact your business
+            </p>
+          </div>
+          <Button
+            onClick={runSensitivityAnalysis}
+            disabled={isAnalyzing}
+            className="bg-gradient-to-r from-amber-500 to-orange-500"
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Sparkles className="w-4 h-4 mr-2" />
+                Run Analysis
+              </>
+            )}
+          </Button>
+        </div>
+      </GlassCard>
+
+      {!sensitivityResults && !isAnalyzing && (
+        <GlassCard className="p-12 text-center">
+          <GitBranch className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold mb-2">Sensitivity Analysis</h3>
+          <p className="text-zinc-500 max-w-md mx-auto">
+            Test how changes in CAC, ARPU, churn, and other metrics impact your financials
+          </p>
+        </GlassCard>
+      )}
+
+      {isAnalyzing && (
+        <GlassCard className="p-12 text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-amber-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Running Sensitivity Analysis...</h3>
+          <p className="text-zinc-500">Testing different scenarios</p>
+        </GlassCard>
+      )}
+
+      {sensitivityResults && (
+        <div className="space-y-4">
+          {sensitivityResults.scenarios?.map((scenario, idx) => {
+            const impactColor = 
+              scenario.health_impact === 'positive' ? 'text-emerald-400' :
+              scenario.health_impact === 'negative' ? 'text-red-400' :
+              'text-zinc-400';
+
+            const impactIcon = 
+              scenario.health_impact === 'positive' ? TrendingUp :
+              scenario.health_impact === 'negative' ? TrendingDown :
+              Target;
+
+            const ImpactIcon = impactIcon;
+
+            return (
+              <GlassCard key={idx} className="p-5">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <ImpactIcon className={`w-5 h-5 ${impactColor}`} />
+                    <div>
+                      <h4 className="font-semibold">{scenario.scenario_name}</h4>
+                      <p className="text-xs text-zinc-500">{scenario.metric_changed}</p>
+                    </div>
+                  </div>
+                  <Badge className={
+                    scenario.health_impact === 'positive' ? 'bg-emerald-500/20 text-emerald-400' :
+                    scenario.health_impact === 'negative' ? 'bg-red-500/20 text-red-400' :
+                    'bg-zinc-500/20 text-zinc-400'
+                  }>
+                    {scenario.health_impact}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
+                  <div className="p-3 rounded-lg bg-white/5">
+                    <p className="text-xs text-zinc-500">New LTV</p>
+                    <p className="text-sm font-semibold">{formatCurrency(scenario.new_ltv)}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-white/5">
+                    <p className="text-xs text-zinc-500">LTV/CAC</p>
+                    <p className="text-sm font-semibold">{scenario.new_ltv_cac_ratio?.toFixed(2)}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-white/5">
+                    <p className="text-xs text-zinc-500">Revenue Impact</p>
+                    <p className={`text-sm font-semibold ${scenario.revenue_impact >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {scenario.revenue_impact >= 0 ? '+' : ''}{formatCurrency(scenario.revenue_impact)}
+                    </p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-white/5">
+                    <p className="text-xs text-zinc-500">Valuation Impact</p>
+                    <p className={`text-sm font-semibold ${scenario.valuation_impact >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {scenario.valuation_impact >= 0 ? '+' : ''}{formatCurrency(scenario.valuation_impact)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                  <p className="text-xs text-blue-400 font-medium mb-1">Recommendation:</p>
+                  <p className="text-sm text-zinc-300">{scenario.recommendation}</p>
+                </div>
+              </GlassCard>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

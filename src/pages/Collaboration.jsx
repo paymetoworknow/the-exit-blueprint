@@ -4,8 +4,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Share2, Mail, Eye, Clock, MessageSquare, Users,
   Sparkles, Loader2, AlertCircle, CheckCircle, Trash2,
-  ExternalLink, Copy, Check, TrendingUp, TrendingDown
+  ExternalLink, Copy, Check, TrendingUp, TrendingDown, Target
 } from 'lucide-react';
+import InvestorMatching from '@/components/InvestorMatching';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -49,7 +50,21 @@ export default function Collaboration() {
     enabled: !!businesses?.[0],
   });
 
+  const { data: financials } = useQuery({
+    queryKey: ['financials'],
+    queryFn: () => base44.entities.Financials.list('-created_date', 1),
+    enabled: !!businesses?.[0],
+  });
+
+  const { data: marketData } = useQuery({
+    queryKey: ['market-analysis'],
+    queryFn: () => base44.entities.MarketAnalysis.list('-created_date', 1),
+    enabled: !!businesses?.[0],
+  });
+
   const currentBusiness = businesses?.[0];
+  const currentFinancials = financials?.[0];
+  const currentMarket = marketData?.[0];
 
   const createShareMutation = useMutation({
     mutationFn: async (data) => {
@@ -178,6 +193,10 @@ Provide a comprehensive analysis:
             <MessageSquare className="w-4 h-4 mr-2" />
             Feedback ({feedback?.filter(f => f.business_id === currentBusiness?.id).length || 0})
           </TabsTrigger>
+          <TabsTrigger value="outreach" className="data-[state=active]:bg-white/10">
+            <Target className="w-4 h-4 mr-2" />
+            Investor Outreach
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="shared">
@@ -195,6 +214,14 @@ Provide a comprehensive analysis:
             feedbackSummary={feedbackSummary}
             isAnalyzing={isAnalyzingFeedback}
             onAnalyze={() => analyzeFeedbackMutation.mutate()}
+          />
+        </TabsContent>
+
+        <TabsContent value="outreach">
+          <InvestorMatching
+            currentBusiness={currentBusiness}
+            currentFinancials={currentFinancials}
+            currentMarket={currentMarket}
           />
         </TabsContent>
       </Tabs>
