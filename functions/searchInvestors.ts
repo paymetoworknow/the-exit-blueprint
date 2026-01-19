@@ -181,7 +181,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { industry, funding_stage, min_check_size, search_query } = await req.json();
+    const body = await req.json();
+    
+    // Input validation and sanitization
+    const industry = body.industry ? String(body.industry).toLowerCase().slice(0, 50) : null;
+    const funding_stage = body.funding_stage ? String(body.funding_stage).toLowerCase().slice(0, 50) : null;
+    const min_check_size = body.min_check_size ? Math.max(0, Math.min(Number(body.min_check_size) || 0, 1000000000)) : 0;
+    const search_query = body.search_query ? String(body.search_query).slice(0, 200).trim() : '';
 
     // Filter investors based on criteria
     let results = INVESTOR_DATABASE;

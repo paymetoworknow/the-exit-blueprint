@@ -156,26 +156,25 @@ Generate:
           }
         });
 
-        // Step 3: Generate logo concepts (3-5 variations)
+        // Step 3: Generate logo concepts in parallel (faster)
         const logoPrompts = [
           `Modern minimalist logo for ${currentBusiness.business_name}, ${currentBusiness.industry} company. Clean geometric shapes, ${brandResult.brand_voice || 'professional'} style. Single color on white background. Vector style, simple icon.`,
           `Abstract lettermark logo for ${currentBusiness.business_name}. Stylized initials, ${currentBusiness.industry} industry. ${brandResult.brand_voice || 'professional'} and sophisticated. Minimalist design.`,
-          `Icon-based logo for ${currentBusiness.business_name}. Symbolic representation of ${currentBusiness.industry}. Modern, scalable, memorable. ${brandResult.brand_voice || 'professional'} aesthetic.`,
-          `Wordmark logo for ${currentBusiness.business_name}. Typography-focused, ${currentBusiness.industry} sector. Clean, ${brandResult.brand_voice || 'professional'}, easily readable. Contemporary font treatment.`,
-          `Badge-style logo for ${currentBusiness.business_name}. ${currentBusiness.industry} company. Circular or shield design. ${brandResult.brand_voice || 'professional'} and trustworthy appearance.`
+          `Icon-based logo for ${currentBusiness.business_name}. Symbolic representation of ${currentBusiness.industry}. Modern, scalable, memorable. ${brandResult.brand_voice || 'professional'} aesthetic.`
         ];
 
-        const logoUrls = [];
-        for (let i = 0; i < 3; i++) {
-          try {
-            const logoResult = await base44.integrations.Core.GenerateImage({
-              prompt: logoPrompts[i]
-            });
-            logoUrls.push(logoResult.url);
-          } catch (err) {
-            console.error(`Logo ${i + 1} generation failed:`, err);
-          }
-        }
+        // Generate all logos in parallel for better performance
+        const logoPromises = logoPrompts.map(prompt => 
+          base44.integrations.Core.GenerateImage({ prompt })
+            .then(result => result.url)
+            .catch(err => {
+              console.error('Logo generation failed:', err);
+              return null;
+            })
+        );
+
+        const logoResults = await Promise.all(logoPromises);
+        const logoUrls = logoResults.filter(url => url !== null);
 
         // Step 4: Generate favicon
         const faviconPrompt = `Simple favicon icon for ${currentBusiness.business_name}. Single letter or simple symbol. Minimal design, high contrast, recognizable at 16x16px. ${brandResult.brand_voice || 'professional'} style. Centered on ${brandResult.primary_color || '#8B5CF6'} background.`;

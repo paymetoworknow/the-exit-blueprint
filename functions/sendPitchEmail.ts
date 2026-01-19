@@ -9,6 +9,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const body = await req.json();
+    
+    // Input validation
     const { 
       investor_email, 
       investor_name,
@@ -18,23 +21,37 @@ Deno.serve(async (req) => {
       founder_name,
       founder_email,
       custom_message
-    } = await req.json();
+    } = body;
 
+    // Validate required fields
     if (!investor_email || !business_name) {
       return Response.json({ 
         error: 'Missing required fields: investor_email and business_name' 
       }, { status: 400 });
     }
 
-    // Create email content
-    const emailSubject = `Investment Opportunity: ${business_name}`;
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(investor_email)) {
+      return Response.json({ 
+        error: 'Invalid email format' 
+      }, { status: 400 });
+    }
+
+    // Sanitize inputs to prevent injection
+    const sanitize = (str) => String(str || '').slice(0, 5000).trim();
+    const sanitizedBusinessName = sanitize(business_name);
+    const sanitizedMessage = sanitize(custom_message);
+
+    // Create email content with sanitized data
+    const emailSubject = `Investment Opportunity: ${sanitizedBusinessName}`;
     
     const emailBody = `
-Dear ${investor_name || 'Investor'},
+Dear ${sanitize(investor_name) || 'Investor'},
 
-I hope this email finds you well. I'm reaching out to introduce ${business_name}, ${tagline || 'an exciting new venture'}.
+I hope this email finds you well. I'm reaching out to introduce ${sanitizedBusinessName}, ${sanitize(tagline) || 'an exciting new venture'}.
 
-${custom_message || `We believe our company aligns well with your investment thesis and portfolio. We're building something truly transformative in the ${pitch_deck_summary?.industry || 'technology'} space.`}
+${sanitizedMessage || `We believe our company aligns well with your investment thesis and portfolio. We're building something truly transformative in the ${sanitize(pitch_deck_summary?.industry) || 'technology'} space.`}
 
 ${pitch_deck_summary ? `
 

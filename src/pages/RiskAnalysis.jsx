@@ -170,13 +170,24 @@ Also provide:
       setRiskReport(data);
       setIsAnalyzing(false);
     },
-    onError: () => setIsAnalyzing(false),
+    onError: (error) => {
+      console.error('Risk analysis failed:', error);
+      alert('Risk analysis failed. Please try again.');
+      setIsAnalyzing(false);
+    },
   });
 
   const handleAnalyze = () => {
-    if (currentBusiness) {
-      analyzeRisksMutation.mutate();
+    if (!currentBusiness) {
+      alert('Please create a business first in Stage 1');
+      return;
     }
+    
+    if (isAnalyzing) {
+      return;
+    }
+    
+    analyzeRisksMutation.mutate();
   };
 
   const getRisksByCategory = (category) => {

@@ -761,6 +761,11 @@ function InvestorNetwork({ businessId, business, pitchDeck, queryClient, searchR
   };
 
   const handlePitch = async (investor, customMessage) => {
+    if (!investor?.email || !business) {
+      alert('Missing required information to send pitch');
+      return;
+    }
+
     setIsPitching(true);
     try {
       // Extract pitch deck summary
@@ -798,10 +803,13 @@ function InvestorNetwork({ businessId, business, pitchDeck, queryClient, searchR
 
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       setSelectedInvestor(null);
+      alert('Pitch email sent successfully!');
     } catch (error) {
       console.error('Pitch failed:', error);
+      alert('Failed to send pitch. Please try again.');
+    } finally {
+      setIsPitching(false);
     }
-    setIsPitching(false);
   };
 
   React.useEffect(() => {
