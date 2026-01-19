@@ -33,6 +33,7 @@ const utilityPages = [
   { name: 'Analytics', page: 'Analytics', icon: BarChart3 },
   { name: 'Risk Analysis', page: 'RiskAnalysis', icon: Shield },
   { name: 'Business Plan', page: 'BusinessPlanGenerator', icon: Sparkles },
+  { name: 'Form Generator', page: 'FormGenerator', icon: Sparkles },
   { name: 'Collaboration', page: 'Collaboration', icon: Users },
   { name: 'Decision Assistant', page: 'DecisionAssistant', icon: Zap },
   { name: 'Brand Audit', page: 'BrandAudit', icon: Sparkles },
