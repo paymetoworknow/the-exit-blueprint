@@ -230,7 +230,7 @@ Provide:
           variant="outline" 
           onClick={handleSave}
           disabled={saveMutation.isPending}
-          className="border-white/10 hover:bg-white/5"
+          className="border-white/10 hover:bg-white/5 text-white"
         >
           <Save className="w-4 h-4 mr-2" />
           Save Progress
