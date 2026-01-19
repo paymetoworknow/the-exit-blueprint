@@ -233,7 +233,7 @@ export default function FormGenerator() {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold">Generated Document</h3>
                 <div className="flex gap-2">
-                  <Button onClick={() => window.print()} size="sm" variant="outline" className="border-white/10">
+                  <Button onClick={() => window.print()} size="sm" className="bg-white/10 hover:bg-white/20 border border-white/20">
                     <Printer className="w-4 h-4" />
                   </Button>
                   <Button onClick={exportDocument} size="sm" className="bg-gradient-to-r from-indigo-500 to-blue-600">

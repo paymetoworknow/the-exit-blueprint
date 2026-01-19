@@ -270,16 +270,14 @@ Write in a professional, compelling tone. Use specific data points. Make it inve
           <div className="flex gap-2">
             <Button
               onClick={() => window.print()}
-              variant="outline"
-              className="border-white/10"
+              className="bg-white/10 hover:bg-white/20 border border-white/20"
             >
               <Printer className="w-4 h-4 mr-2" />
               Print
             </Button>
             <Button
               onClick={exportToPDF}
-              variant="outline"
-              className="border-white/10"
+              className="bg-white/10 hover:bg-white/20 border border-white/20"
             >
               <Download className="w-4 h-4 mr-2" />
               Export
@@ -441,8 +439,7 @@ Write in a professional, compelling tone. Use specific data points. Make it inve
           <div className="flex justify-center gap-3 no-print">
             <Button
               onClick={() => window.print()}
-              variant="outline"
-              className="border-white/10"
+              className="bg-white/10 hover:bg-white/20 border border-white/20"
             >
               <Printer className="w-4 h-4 mr-2" />
               Print Business Plan
