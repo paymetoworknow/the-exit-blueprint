@@ -17,7 +17,8 @@ import {
   Sparkles,
   BarChart3,
   Users,
-  Zap
+  Zap,
+  Target
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -32,6 +33,7 @@ const stages = [
 const utilityPages = [
   { name: 'Analytics', page: 'Analytics', icon: BarChart3 },
   { name: 'CRM Integration', page: 'CRMIntegration', icon: Users },
+  { name: 'Investor Outreach', page: 'InvestorOutreach', icon: Target },
   { name: 'Risk Analysis', page: 'RiskAnalysis', icon: Shield },
   { name: 'Business Plan', page: 'BusinessPlanGenerator', icon: Sparkles },
   { name: 'Form Generator', page: 'FormGenerator', icon: Sparkles },
