@@ -12,6 +12,7 @@ import DecisionAssistant from './pages/DecisionAssistant';
 import BrandAudit from './pages/BrandAudit';
 import BusinessPlanGenerator from './pages/BusinessPlanGenerator';
 import FormGenerator from './pages/FormGenerator';
+import Support from './pages/Support';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +31,7 @@ export const PAGES = {
     "BrandAudit": BrandAudit,
     "BusinessPlanGenerator": BusinessPlanGenerator,
     "FormGenerator": FormGenerator,
+    "Support": Support,
 }
 
 export const pagesConfig = {
