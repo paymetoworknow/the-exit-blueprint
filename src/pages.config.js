@@ -10,6 +10,7 @@ import RiskAnalysis from './pages/RiskAnalysis';
 import Collaboration from './pages/Collaboration';
 import DecisionAssistant from './pages/DecisionAssistant';
 import BrandAudit from './pages/BrandAudit';
+import BusinessPlanGenerator from './pages/BusinessPlanGenerator';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "Collaboration": Collaboration,
     "DecisionAssistant": DecisionAssistant,
     "BrandAudit": BrandAudit,
+    "BusinessPlanGenerator": BusinessPlanGenerator,
 }
 
 export const pagesConfig = {
