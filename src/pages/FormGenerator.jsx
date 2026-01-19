@@ -24,6 +24,10 @@ const formCategories = [
       { id: 'privacy_policy', name: 'Privacy Policy', description: 'Data privacy and usage policy' },
       { id: 'partnership_agreement', name: 'Partnership Agreement', description: 'Business partnership terms' },
       { id: 'consulting_agreement', name: 'Consulting Agreement', description: 'Professional services contract' },
+      { id: 'shareholder_agreement', name: 'Shareholder Agreement', description: 'Equity ownership terms' },
+      { id: 'licensing_agreement', name: 'Licensing Agreement', description: 'IP licensing terms' },
+      { id: 'service_agreement', name: 'Service Level Agreement (SLA)', description: 'Service quality commitments' },
+      { id: 'franchise_agreement', name: 'Franchise Agreement', description: 'Franchising terms and conditions' },
     ]
   },
   {
@@ -36,6 +40,10 @@ const formCategories = [
       { id: 'timesheet', name: 'Timesheet Template', description: 'Weekly time tracking' },
       { id: 'leave_request', name: 'Leave Request Form', description: 'PTO and absence requests' },
       { id: 'onboarding_checklist', name: 'Employee Onboarding Checklist', description: 'New hire onboarding steps' },
+      { id: 'termination_letter', name: 'Termination Letter', description: 'Employee separation notice' },
+      { id: 'warning_letter', name: 'Warning Letter', description: 'Employee disciplinary action' },
+      { id: 'promotion_letter', name: 'Promotion Letter', description: 'Position advancement notice' },
+      { id: 'exit_interview', name: 'Exit Interview Form', description: 'Departing employee feedback' },
     ]
   },
   {
@@ -48,6 +56,9 @@ const formCategories = [
       { id: 'purchase_order', name: 'Purchase Order', description: 'Vendor purchase authorization' },
       { id: 'receipt', name: 'Receipt Template', description: 'Payment acknowledgment' },
       { id: 'quote', name: 'Price Quote', description: 'Service/product pricing proposal' },
+      { id: 'credit_note', name: 'Credit Note', description: 'Refund or credit memo' },
+      { id: 'payment_plan', name: 'Payment Plan Agreement', description: 'Installment payment terms' },
+      { id: 'budget_template', name: 'Budget Template', description: 'Financial planning worksheet' },
     ]
   },
   {
@@ -60,6 +71,9 @@ const formCategories = [
       { id: 'project_brief', name: 'Project Brief', description: 'Project scope and requirements' },
       { id: 'sow', name: 'Statement of Work (SOW)', description: 'Project deliverables and timeline' },
       { id: 'change_order', name: 'Change Order Form', description: 'Project scope modifications' },
+      { id: 'project_charter', name: 'Project Charter', description: 'Project authorization document' },
+      { id: 'vendor_contract', name: 'Vendor Contract', description: 'Supplier agreement terms' },
+      { id: 'rfp', name: 'Request for Proposal (RFP)', description: 'Vendor bid solicitation' },
     ]
   },
   {
@@ -71,6 +85,7 @@ const formCategories = [
       { id: 'safety_checklist', name: 'Safety Inspection Checklist', description: 'Workplace safety audit' },
       { id: 'compliance_checklist', name: 'Compliance Checklist', description: 'Regulatory compliance tracking' },
       { id: 'risk_assessment', name: 'Risk Assessment Form', description: 'Identify and evaluate risks' },
+      { id: 'data_breach_response', name: 'Data Breach Response Plan', description: 'Security incident protocol' },
     ]
   },
 ];

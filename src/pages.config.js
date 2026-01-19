@@ -14,6 +14,7 @@ import BusinessPlanGenerator from './pages/BusinessPlanGenerator';
 import FormGenerator from './pages/FormGenerator';
 import Support from './pages/Support';
 import CRMIntegration from './pages/CRMIntegration';
+import BrandingAssets from './pages/BrandingAssets';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "FormGenerator": FormGenerator,
     "Support": Support,
     "CRMIntegration": CRMIntegration,
+    "BrandingAssets": BrandingAssets,
 }
 
 export const pagesConfig = {
