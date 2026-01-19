@@ -9,6 +9,7 @@ import Stage5Exit from './pages/Stage5Exit';
 import RiskAnalysis from './pages/RiskAnalysis';
 import Collaboration from './pages/Collaboration';
 import DecisionAssistant from './pages/DecisionAssistant';
+import BrandAudit from './pages/BrandAudit';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +25,7 @@ export const PAGES = {
     "RiskAnalysis": RiskAnalysis,
     "Collaboration": Collaboration,
     "DecisionAssistant": DecisionAssistant,
+    "BrandAudit": BrandAudit,
 }
 
 export const pagesConfig = {
