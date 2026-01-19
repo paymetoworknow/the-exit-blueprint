@@ -13,6 +13,7 @@ import BrandAudit from './pages/BrandAudit';
 import BusinessPlanGenerator from './pages/BusinessPlanGenerator';
 import FormGenerator from './pages/FormGenerator';
 import Support from './pages/Support';
+import CRMIntegration from './pages/CRMIntegration';
 import __Layout from './Layout.jsx';
 
 
@@ -32,6 +33,7 @@ export const PAGES = {
     "BusinessPlanGenerator": BusinessPlanGenerator,
     "FormGenerator": FormGenerator,
     "Support": Support,
+    "CRMIntegration": CRMIntegration,
 }
 
 export const pagesConfig = {

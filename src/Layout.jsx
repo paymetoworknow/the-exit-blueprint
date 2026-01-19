@@ -31,6 +31,7 @@ const stages = [
 
 const utilityPages = [
   { name: 'Analytics', page: 'Analytics', icon: BarChart3 },
+  { name: 'CRM Integration', page: 'CRMIntegration', icon: Users },
   { name: 'Risk Analysis', page: 'RiskAnalysis', icon: Shield },
   { name: 'Business Plan', page: 'BusinessPlanGenerator', icon: Sparkles },
   { name: 'Form Generator', page: 'FormGenerator', icon: Sparkles },
