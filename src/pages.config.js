@@ -7,6 +7,8 @@ import Stage3Engine from './pages/Stage3Engine';
 import Stage4Quant from './pages/Stage4Quant';
 import Stage5Exit from './pages/Stage5Exit';
 import RiskAnalysis from './pages/RiskAnalysis';
+import Collaboration from './pages/Collaboration';
+import DecisionAssistant from './pages/DecisionAssistant';
 import __Layout from './Layout.jsx';
 
 
@@ -20,6 +22,8 @@ export const PAGES = {
     "Stage4Quant": Stage4Quant,
     "Stage5Exit": Stage5Exit,
     "RiskAnalysis": RiskAnalysis,
+    "Collaboration": Collaboration,
+    "DecisionAssistant": DecisionAssistant,
 }
 
 export const pagesConfig = {

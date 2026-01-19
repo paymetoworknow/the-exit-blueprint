@@ -15,7 +15,9 @@ import {
   LogOut,
   Settings,
   Sparkles,
-  BarChart3
+  BarChart3,
+  Users,
+  Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -30,6 +32,8 @@ const stages = [
 const utilityPages = [
   { name: 'Analytics', page: 'Analytics', icon: BarChart3 },
   { name: 'Risk Analysis', page: 'RiskAnalysis', icon: Shield },
+  { name: 'Collaboration', page: 'Collaboration', icon: Users },
+  { name: 'Decision Assistant', page: 'DecisionAssistant', icon: Zap },
 ];
 
 export default function Layout({ children, currentPageName }) {
