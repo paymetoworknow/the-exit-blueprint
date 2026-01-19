@@ -209,7 +209,7 @@ function SidebarContent({ currentPageName, currentStage, currentBusiness, collap
         </div>
       )}
 
-      {/* Dashboard Link */}
+      {/* Dashboard & Onboarding Links */}
       <div>
         {!collapsed && <p className="text-xs text-zinc-500 uppercase tracking-wider px-3 mb-2">Overview</p>}
         <Link 
@@ -230,6 +230,26 @@ function SidebarContent({ currentPageName, currentStage, currentBusiness, collap
           </div>
           {!collapsed && <span className="font-medium">Dashboard</span>}
         </Link>
+        {!currentBusiness && (
+          <Link 
+            to={createPageUrl('Onboarding')}
+            onClick={onNavigate}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 mt-1",
+              currentPageName === 'Onboarding' 
+                ? "bg-white/10 text-white" 
+                : "text-zinc-400 hover:text-white hover:bg-white/5"
+            )}
+          >
+            <div className={cn(
+              "w-9 h-9 rounded-lg flex items-center justify-center shrink-0",
+              currentPageName === 'Onboarding' ? "bg-gradient-to-br from-emerald-500 to-teal-600" : "bg-white/5"
+            )}>
+              <Rocket className="w-4 h-4" />
+            </div>
+            {!collapsed && <span className="font-medium">Get Started</span>}
+          </Link>
+        )}
       </div>
 
       {/* Analytics & Utilities */}

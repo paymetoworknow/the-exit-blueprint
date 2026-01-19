@@ -16,6 +16,7 @@ import Stage4Quant from './pages/Stage4Quant';
 import Stage5Exit from './pages/Stage5Exit';
 import Support from './pages/Support';
 import InvestorOutreach from './pages/InvestorOutreach';
+import Onboarding from './pages/Onboarding';
 import __Layout from './Layout.jsx';
 
 
@@ -38,6 +39,7 @@ export const PAGES = {
     "Stage5Exit": Stage5Exit,
     "Support": Support,
     "InvestorOutreach": InvestorOutreach,
+    "Onboarding": Onboarding,
 }
 
 export const pagesConfig = {
