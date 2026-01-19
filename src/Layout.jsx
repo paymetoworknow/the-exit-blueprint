@@ -29,6 +29,7 @@ const stages = [
 
 const utilityPages = [
   { name: 'Analytics', page: 'Analytics', icon: BarChart3 },
+  { name: 'Risk Analysis', page: 'RiskAnalysis', icon: Shield },
 ];
 
 export default function Layout({ children, currentPageName }) {

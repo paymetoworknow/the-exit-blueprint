@@ -6,6 +6,7 @@ import Stage2Architect from './pages/Stage2Architect';
 import Stage3Engine from './pages/Stage3Engine';
 import Stage4Quant from './pages/Stage4Quant';
 import Stage5Exit from './pages/Stage5Exit';
+import RiskAnalysis from './pages/RiskAnalysis';
 import __Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "Stage3Engine": Stage3Engine,
     "Stage4Quant": Stage4Quant,
     "Stage5Exit": Stage5Exit,
+    "RiskAnalysis": RiskAnalysis,
 }
 
 export const pagesConfig = {
