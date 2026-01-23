@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { entities, integrations } from '@/api/entities';
+import { entities } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 import { 
   BarChart3, Download, Users, DollarSign, 

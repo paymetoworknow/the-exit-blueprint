@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { entities, integrations } from '@/api/entities';
+import { entities } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Settings, Trash2, AlertTriangle, Loader2, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';

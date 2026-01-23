@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { entities, integrations } from '@/api/entities';
+import { entities } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 import { 
   FileText, Sparkles, Loader2, Download, CheckCircle,
