@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
-  Zap, Plus, Sparkles, Loader2, CheckCircle, AlertTriangle,
-  TrendingUp, Target, DollarSign, Users, Clock, ArrowRight
+  Zap, Plus, Sparkles, Loader2, CheckCircle,
+  TrendingUp, Target, DollarSign, Users, ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

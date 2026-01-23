@@ -3,16 +3,14 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Calculator, DollarSign, TrendingUp, TrendingDown, 
-  Users, Target, Percent, PiggyBank, Save,
-  ArrowUpRight, ArrowDownRight, Wallet, LineChart,
-  Loader2, AlertCircle, CheckCircle, Sparkles, BarChart3, GitBranch, RefreshCw
+  Users, Target, Percent, PiggyBank, Save, Wallet, LineChart,
+  Loader2, Sparkles, BarChart3, GitBranch, RefreshCw
 } from 'lucide-react';
 import { LineChart as RechartsLine, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import GlassCard from '@/components/ui/GlassCard';
 import StageHeader from '@/components/ui/StageHeader';
 

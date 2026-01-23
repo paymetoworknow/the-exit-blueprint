@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
-  Rocket, Presentation, Users, Plus, Edit, Trash2,
-  Mail, Phone, Building, Calendar, Save, Sparkles,
-  ChevronLeft, ChevronRight, Eye, Loader2, UserPlus,
+  Rocket, Presentation, Users, Plus, Trash2,
+  Mail, Building, Sparkles,
+  ChevronLeft, ChevronRight, Loader2, UserPlus,
   Search, Send, ExternalLink, TrendingUp, Filter,
-  CheckCircle, Globe, DollarSign
+  CheckCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

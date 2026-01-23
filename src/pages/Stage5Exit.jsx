@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
-  Shield, FileText, Upload, FolderOpen, Eye, Lock,
-  Download, Trash2, CheckCircle, AlertCircle, Clock,
+  Shield, FileText, Upload, FolderOpen, Lock, Trash2, CheckCircle, AlertCircle, Clock,
   Building, Users, TrendingUp, DollarSign, Sparkles,
   Loader2, ExternalLink, FileCheck, Briefcase, Brain, Search
 } from 'lucide-react';
