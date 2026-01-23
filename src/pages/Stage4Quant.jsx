@@ -3,16 +3,14 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Calculator, DollarSign, TrendingUp, TrendingDown, 
-  Users, Target, Percent, PiggyBank, Save,
-  ArrowUpRight, ArrowDownRight, Wallet, LineChart,
-  Loader2, AlertCircle, CheckCircle, Sparkles, BarChart3, GitBranch, RefreshCw
+  Users, Target, Percent, PiggyBank, Save, Wallet, LineChart,
+  Loader2, Sparkles, BarChart3, GitBranch, RefreshCw
 } from 'lucide-react';
 import { LineChart as RechartsLine, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import GlassCard from '@/components/ui/GlassCard';
 import StageHeader from '@/components/ui/StageHeader';
 
@@ -169,7 +167,53 @@ export default function Stage4Quant() {
   });
 
   const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: parseFloat(value) || 0 }));
+    // Ensure value is always treated as a number, not a string
+    // Allow only digits, one decimal point, and optional leading minus for valid numbers
+    const sanitizedValue = value.toString().replace(/[^0-9.-]/g, '');
+    
+    // Remove duplicate decimal points and minus signs
+    const parts = sanitizedValue.split('.');
+    const cleanValue = parts.length > 1 
+      ? parts[0] + '.' + parts.slice(1).join('') 
+      : sanitizedValue;
+    
+    const numericValue = parseFloat(cleanValue);
+    
+    // Ensure we store a valid number, default to 0 if invalid
+    // All financial fields should be non-negative (no debts/losses in this form)
+    let finalValue = isNaN(numericValue) ? 0 : Math.max(0, numericValue);
+    
+    // Cap percentage fields at 100
+    if (field === 'churn_rate' || field === 'gross_margin') {
+      finalValue = Math.min(finalValue, 100);
+    }
+    
+    setFormData(prev => ({ ...prev, [field]: finalValue }));
+  };
+
+  // Prevent non-numeric keyboard input (letters, special characters)
+  const handleKeyDown = (e) => {
+    // Allow: backspace, delete, tab, escape, enter, and arrow keys for navigation
+    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+    
+    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X for clipboard operations
+    if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
+      return;
+    }
+    
+    // Allow decimal point only if not already present in the input
+    if (e.key === '.') {
+      const currentValue = e.target.value || '';
+      if (currentValue.includes('.')) {
+        e.preventDefault();
+      }
+      return;
+    }
+    
+    // Block if not a number (0-9) and not an allowed key
+    if (!allowedKeys.includes(e.key) && !/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+    }
   };
 
   const handleSave = () => {
@@ -463,9 +507,13 @@ Calculate industry-standard valuation multiplier for Year 5.`;
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input
                   type="number"
+                  min="0"
+                  step="0.01"
                   value={formData.monthly_revenue}
                   onChange={e => handleChange('monthly_revenue', e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="pl-9 bg-white/5 border-white/10 focus:border-amber-500"
+                  placeholder="0.00"
                 />
               </div>
             </div>
@@ -476,9 +524,13 @@ Calculate industry-standard valuation multiplier for Year 5.`;
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input
                   type="number"
+                  min="0"
+                  step="0.01"
                   value={formData.monthly_burn}
                   onChange={e => handleChange('monthly_burn', e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="pl-9 bg-white/5 border-white/10 focus:border-amber-500"
+                  placeholder="0.00"
                 />
               </div>
             </div>
@@ -489,9 +541,13 @@ Calculate industry-standard valuation multiplier for Year 5.`;
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input
                   type="number"
+                  min="0"
+                  step="0.01"
                   value={formData.cash_on_hand}
                   onChange={e => handleChange('cash_on_hand', e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="pl-9 bg-white/5 border-white/10 focus:border-amber-500"
+                  placeholder="0.00"
                 />
               </div>
             </div>
@@ -502,9 +558,13 @@ Calculate industry-standard valuation multiplier for Year 5.`;
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input
                   type="number"
+                  min="0"
+                  step="0.01"
                   value={formData.cac}
                   onChange={e => handleChange('cac', e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="pl-9 bg-white/5 border-white/10 focus:border-amber-500"
+                  placeholder="0.00"
                 />
               </div>
             </div>
@@ -515,9 +575,13 @@ Calculate industry-standard valuation multiplier for Year 5.`;
                 <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input
                   type="number"
+                  min="0"
+                  step="1"
                   value={formData.customer_count}
                   onChange={e => handleChange('customer_count', e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="pl-9 bg-white/5 border-white/10 focus:border-amber-500"
+                  placeholder="0"
                 />
               </div>
             </div>
@@ -528,9 +592,13 @@ Calculate industry-standard valuation multiplier for Year 5.`;
                 <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input
                   type="number"
+                  min="0"
+                  step="0.01"
                   value={formData.arpu}
                   onChange={e => handleChange('arpu', e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="pl-9 bg-white/5 border-white/10 focus:border-amber-500"
+                  placeholder="0.00"
                 />
               </div>
             </div>
@@ -541,10 +609,14 @@ Calculate industry-standard valuation multiplier for Year 5.`;
                 <Percent className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input
                   type="number"
+                  min="0"
+                  max="100"
                   step="0.1"
                   value={formData.churn_rate}
                   onChange={e => handleChange('churn_rate', e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="pl-9 bg-white/5 border-white/10 focus:border-amber-500"
+                  placeholder="5.0"
                 />
               </div>
             </div>
@@ -555,9 +627,13 @@ Calculate industry-standard valuation multiplier for Year 5.`;
                 <Percent className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input
                   type="number"
+                  min="0"
+                  max="100"
                   value={formData.gross_margin}
                   onChange={e => handleChange('gross_margin', e.target.value)}
+                  onKeyDown={handleKeyDown}
                   className="pl-9 bg-white/5 border-white/10 focus:border-amber-500"
+                  placeholder="70"
                 />
               </div>
             </div>
@@ -666,10 +742,12 @@ function ScenariosView({ scenarios, isGenerating, onGenerate, customAssumptions,
                     <Label className="text-xs text-zinc-500">Y1 Growth %</Label>
                     <Input
                       type="number"
+                      min="0"
+                      step="1"
                       value={customAssumptions[scenario].y1}
                       onChange={e => setCustomAssumptions(p => ({ 
                         ...p, 
-                        [scenario]: { ...p[scenario], y1: parseFloat(e.target.value) || 0 }
+                        [scenario]: { ...p[scenario], y1: Math.max(0, parseFloat(e.target.value) || 0) }
                       }))}
                       className="mt-1 bg-white/5 border-white/10 h-8 text-sm"
                     />
@@ -678,10 +756,12 @@ function ScenariosView({ scenarios, isGenerating, onGenerate, customAssumptions,
                     <Label className="text-xs text-zinc-500">Y2 Growth %</Label>
                     <Input
                       type="number"
+                      min="0"
+                      step="1"
                       value={customAssumptions[scenario].y2}
                       onChange={e => setCustomAssumptions(p => ({ 
                         ...p, 
-                        [scenario]: { ...p[scenario], y2: parseFloat(e.target.value) || 0 }
+                        [scenario]: { ...p[scenario], y2: Math.max(0, parseFloat(e.target.value) || 0) }
                       }))}
                       className="mt-1 bg-white/5 border-white/10 h-8 text-sm"
                     />
@@ -690,10 +770,12 @@ function ScenariosView({ scenarios, isGenerating, onGenerate, customAssumptions,
                     <Label className="text-xs text-zinc-500">Y3+ Growth %</Label>
                     <Input
                       type="number"
+                      min="0"
+                      step="1"
                       value={customAssumptions[scenario].y3}
                       onChange={e => setCustomAssumptions(p => ({ 
                         ...p, 
-                        [scenario]: { ...p[scenario], y3: parseFloat(e.target.value) || 0 }
+                        [scenario]: { ...p[scenario], y3: Math.max(0, parseFloat(e.target.value) || 0) }
                       }))}
                       className="mt-1 bg-white/5 border-white/10 h-8 text-sm"
                     />
@@ -702,10 +784,12 @@ function ScenariosView({ scenarios, isGenerating, onGenerate, customAssumptions,
                     <Label className="text-xs text-zinc-500">Margin Improve %</Label>
                     <Input
                       type="number"
+                      min="0"
+                      step="1"
                       value={customAssumptions[scenario].margin}
                       onChange={e => setCustomAssumptions(p => ({ 
                         ...p, 
-                        [scenario]: { ...p[scenario], margin: parseFloat(e.target.value) || 0 }
+                        [scenario]: { ...p[scenario], margin: Math.max(0, parseFloat(e.target.value) || 0) }
                       }))}
                       className="mt-1 bg-white/5 border-white/10 h-8 text-sm"
                     />

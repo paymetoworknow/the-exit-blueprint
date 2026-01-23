@@ -3,8 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Share2, Mail, Eye, Clock, MessageSquare, Users,
-  Sparkles, Loader2, AlertCircle, CheckCircle, Trash2,
-  ExternalLink, Copy, Check, TrendingUp, TrendingDown, Target
+  Sparkles, Loader2, AlertCircle, CheckCircle, Trash2, Copy, Check, TrendingUp, TrendingDown, Target
 } from 'lucide-react';
 import InvestorMatching from '@/components/InvestorMatching';
 import { Button } from '@/components/ui/button';

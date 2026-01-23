@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
-  Building2, Palette, Type, Sparkles, Save, RefreshCw,
+  Building2, Palette, Type, Sparkles, Save,
   CheckCircle, Clock, FileText, Loader2, Copy, Check,
   Image, MessageSquare, Smartphone, Globe, Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import GlassCard from '@/components/ui/GlassCard';
 import StageHeader from '@/components/ui/StageHeader';
