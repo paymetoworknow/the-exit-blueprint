@@ -631,7 +631,7 @@ function LogosView({ logoConcepts, faviconUrl, selectedLogo, onSelectLogo, busin
 
             <div className="flex-1 p-4 rounded-lg bg-white/5 border border-white/10">
               <p className="text-xs text-zinc-500 mb-2">Preview in browser tab:</p>
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-900">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-zinc-900">
                 <img src={faviconUrl} alt="Tab preview" className="w-4 h-4" />
                 <span className="text-sm text-zinc-300">{businessName}</span>
               </div>
