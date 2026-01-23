@@ -173,24 +173,243 @@ CREATE INDEX idx_crm_lead_user_id ON crm_lead(user_id);
 CREATE INDEX idx_crm_lead_business_id ON crm_lead(business_id);
 ```
 
-### 5. Additional Tables
+### 5. Risk Assessment Table
 
-Create similar tables for:
-- `risk_assessment`
-- `business_plan`
-- `decision_log`
-- `pitch_deck`
-- `investor`
-- `brand_asset`
-- `data_room`
-- `document`
+```sql
+CREATE TABLE risk_assessment (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES business_core(id) ON DELETE CASCADE,
+  risk_category TEXT,
+  risk_description TEXT,
+  severity TEXT,
+  likelihood TEXT,
+  mitigation_strategy TEXT,
+  status TEXT DEFAULT 'open',
+  created_date TIMESTAMPTZ DEFAULT NOW(),
+  updated_date TIMESTAMPTZ DEFAULT NOW()
+);
 
-Use the same pattern as above:
-- UUID primary key
-- user_id reference with ON DELETE CASCADE
-- Row Level Security policies
-- Appropriate indexes
-- created_date and updated_date timestamps
+ALTER TABLE risk_assessment ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own risk assessments" ON risk_assessment
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own risk assessments" ON risk_assessment
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own risk assessments" ON risk_assessment
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own risk assessments" ON risk_assessment
+  FOR DELETE USING (auth.uid() = user_id);
+
+CREATE INDEX idx_risk_assessment_user_id ON risk_assessment(user_id);
+CREATE INDEX idx_risk_assessment_business_id ON risk_assessment(business_id);
+```
+
+### 6. Additional Tables (Quick Setup)
+
+For the remaining tables, here's a template you can adapt:
+
+```sql
+-- Business Plan
+CREATE TABLE business_plan (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES business_core(id) ON DELETE CASCADE,
+  content JSONB DEFAULT '{}',
+  created_date TIMESTAMPTZ DEFAULT NOW(),
+  updated_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Decision Log
+CREATE TABLE decision_log (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES business_core(id) ON DELETE CASCADE,
+  decision_title TEXT,
+  decision_description TEXT,
+  outcome TEXT,
+  created_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Pitch Deck
+CREATE TABLE pitch_deck (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES business_core(id) ON DELETE CASCADE,
+  title TEXT,
+  slides JSONB DEFAULT '[]',
+  created_date TIMESTAMPTZ DEFAULT NOW(),
+  updated_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Investor
+CREATE TABLE investor (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  email TEXT,
+  company TEXT,
+  focus_industries TEXT[],
+  funding_stages TEXT[],
+  check_size_min NUMERIC,
+  check_size_max NUMERIC,
+  created_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Investor Outreach
+CREATE TABLE investor_outreach (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES business_core(id) ON DELETE CASCADE,
+  investor_id UUID REFERENCES investor(id) ON DELETE CASCADE,
+  status TEXT DEFAULT 'pending',
+  message TEXT,
+  response TEXT,
+  created_date TIMESTAMPTZ DEFAULT NOW(),
+  updated_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Brand Asset
+CREATE TABLE brand_asset (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES business_core(id) ON DELETE CASCADE,
+  asset_type TEXT,
+  asset_name TEXT,
+  asset_url TEXT,
+  description TEXT,
+  created_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Brand Audit
+CREATE TABLE brand_audit (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES business_core(id) ON DELETE CASCADE,
+  audit_data JSONB DEFAULT '{}',
+  score INTEGER,
+  created_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Data Room / Due Diligence
+CREATE TABLE due_diligence (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES business_core(id) ON DELETE CASCADE,
+  document_type TEXT,
+  document_name TEXT,
+  document_url TEXT,
+  status TEXT DEFAULT 'pending',
+  created_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Document
+CREATE TABLE document (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES business_core(id) ON DELETE CASCADE,
+  title TEXT,
+  content TEXT,
+  document_type TEXT,
+  created_date TIMESTAMPTZ DEFAULT NOW(),
+  updated_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Support Ticket
+CREATE TABLE support_ticket (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  subject TEXT,
+  message TEXT,
+  status TEXT DEFAULT 'open',
+  priority TEXT DEFAULT 'normal',
+  created_date TIMESTAMPTZ DEFAULT NOW(),
+  updated_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Chat Message
+CREATE TABLE chat_message (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES business_core(id) ON DELETE CASCADE,
+  message TEXT,
+  sender_type TEXT,
+  created_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Shared Content
+CREATE TABLE shared_content (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES business_core(id) ON DELETE CASCADE,
+  content_type TEXT,
+  content_data JSONB DEFAULT '{}',
+  shared_with TEXT[],
+  created_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Feedback
+CREATE TABLE feedback (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  feedback_type TEXT,
+  message TEXT,
+  rating INTEGER,
+  created_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Sales Goal
+CREATE TABLE sales_goal (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES business_core(id) ON DELETE CASCADE,
+  goal_name TEXT,
+  target_amount NUMERIC,
+  current_amount NUMERIC DEFAULT 0,
+  deadline DATE,
+  status TEXT DEFAULT 'active',
+  created_date TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Apply RLS to all tables
+DO $$
+DECLARE
+  tbl TEXT;
+BEGIN
+  FOR tbl IN 
+    SELECT table_name 
+    FROM information_schema.tables 
+    WHERE table_schema = 'public' 
+    AND table_type = 'BASE TABLE'
+    AND table_name NOT IN ('business_core', 'financials', 'market_analysis', 'crm_lead', 'risk_assessment')
+  LOOP
+    EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', tbl);
+    
+    EXECUTE format('
+      CREATE POLICY "Users can view own %I" ON %I
+        FOR SELECT USING (auth.uid() = user_id)',
+      tbl, tbl);
+    
+    EXECUTE format('
+      CREATE POLICY "Users can insert own %I" ON %I
+        FOR INSERT WITH CHECK (auth.uid() = user_id)',
+      tbl, tbl);
+    
+    EXECUTE format('
+      CREATE POLICY "Users can update own %I" ON %I
+        FOR UPDATE USING (auth.uid() = user_id)',
+      tbl, tbl);
+    
+    EXECUTE format('
+      CREATE POLICY "Users can delete own %I" ON %I
+        FOR DELETE USING (auth.uid() = user_id)',
+      tbl, tbl);
+  END LOOP;
+END $$;
+```
 
 ## Running Migrations
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { entities, integrations } from '@/api/entities';
+import { supabase } from '@/api/supabase';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Rocket, Presentation, Users, Plus, Trash2,
@@ -752,8 +753,11 @@ function InvestorNetwork({ businessId, business, pitchDeck, queryClient, searchR
   const handleSearch = async () => {
     setIsSearching(true);
     try {
-      const result = await base44.functions.invoke('searchInvestors', filters);
-      setSearchResults(result.data.investors || []);
+      const { data, error } = await supabase.functions.invoke('searchInvestors', {
+        body: filters
+      });
+      if (error) throw error;
+      setSearchResults(data.investors || []);
     } catch (error) {
       console.error('Search failed:', error);
     }
