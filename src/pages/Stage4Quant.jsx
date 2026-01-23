@@ -168,11 +168,19 @@ export default function Stage4Quant() {
 
   const handleChange = (field, value) => {
     // Ensure value is always treated as a number, not a string
-    // Remove any non-numeric characters except decimal point and minus sign
+    // Allow only digits, one decimal point, and optional leading minus for valid numbers
     const sanitizedValue = value.toString().replace(/[^0-9.-]/g, '');
-    const numericValue = parseFloat(sanitizedValue);
+    
+    // Remove duplicate decimal points and minus signs
+    const parts = sanitizedValue.split('.');
+    const cleanValue = parts.length > 1 
+      ? parts[0] + '.' + parts.slice(1).join('') 
+      : sanitizedValue;
+    
+    const numericValue = parseFloat(cleanValue);
     
     // Ensure we store a valid number, default to 0 if invalid
+    // All financial fields should be non-negative (no debts/losses in this form)
     let finalValue = isNaN(numericValue) ? 0 : Math.max(0, numericValue);
     
     // Cap percentage fields at 100
@@ -185,16 +193,25 @@ export default function Stage4Quant() {
 
   // Prevent non-numeric keyboard input (letters, special characters)
   const handleKeyDown = (e) => {
-    // Allow: backspace, delete, tab, escape, enter, decimal point
-    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', '.', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+    // Allow: backspace, delete, tab, escape, enter, and arrow keys for navigation
+    const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
     
-    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X for clipboard operations
     if ((e.ctrlKey || e.metaKey) && ['a', 'c', 'v', 'x'].includes(e.key.toLowerCase())) {
       return;
     }
     
-    // Block if not a number and not an allowed key
-    if (!allowedKeys.includes(e.key) && (e.key < '0' || e.key > '9')) {
+    // Allow decimal point only if not already present in the input
+    if (e.key === '.') {
+      const currentValue = e.target.value || '';
+      if (currentValue.includes('.')) {
+        e.preventDefault();
+      }
+      return;
+    }
+    
+    // Block if not a number (0-9) and not an allowed key
+    if (!allowedKeys.includes(e.key) && !/^[0-9]$/.test(e.key)) {
       e.preventDefault();
     }
   };
