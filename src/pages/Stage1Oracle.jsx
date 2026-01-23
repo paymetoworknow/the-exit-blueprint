@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
-  Lightbulb, Sparkles, ArrowRight, Save, RefreshCw,
+  Lightbulb, Sparkles, Save,
   Target, TrendingUp, AlertTriangle, CheckCircle, 
   Zap, Users, DollarSign, Loader2
 } from 'lucide-react';

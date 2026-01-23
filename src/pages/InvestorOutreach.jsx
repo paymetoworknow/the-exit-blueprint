@@ -10,11 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { 
   Target, Loader2, Send, CheckCircle, Clock, XCircle,
   Mail, Calendar, Sparkles, Filter, TrendingUp, Users,
-  Search, Plus, Edit, Eye
+  Search, Plus, Eye
 } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import StageHeader from '@/components/ui/StageHeader';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function InvestorOutreach() {

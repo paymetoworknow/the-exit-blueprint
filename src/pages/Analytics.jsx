@@ -2,16 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { 
-  BarChart3, Download, TrendingUp, Users, DollarSign, 
-  Target, Briefcase, Shield, Eye, EyeOff, Loader2,
-  Calendar, Award, Activity, Grid3x3
+  BarChart3, Download, Users, DollarSign, 
+  Target, Briefcase, Shield, EyeOff, Loader2, Award, Activity
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  LineChart, Line, BarChart, Bar, AreaChart, Area,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
+import { BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip, 
   ResponsiveContainer, PieChart, Pie, Cell 
 } from 'recharts';
 import GlassCard from '@/components/ui/GlassCard';

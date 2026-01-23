@@ -3,10 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { 
-  Sparkles, Loader2, Target, Send, Calendar, CheckCircle,
-  TrendingUp, Mail, Clock
+  Sparkles, Loader2, Target, Send, Calendar, CheckCircle, Mail
 } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
