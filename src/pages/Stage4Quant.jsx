@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Calculator, DollarSign, TrendingUp, TrendingDown, 
@@ -41,18 +41,18 @@ export default function Stage4Quant() {
 
   const { data: businesses, isLoading: loadingBusiness } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: financials, isLoading: loadingFinancials } = useQuery({
     queryKey: ['financials'],
-    queryFn: () => base44.entities.Financials.list('-created_date', 1),
+    queryFn: () => entities.Financials.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
   const { data: marketAnalysis } = useQuery({
     queryKey: ['market-analysis'],
-    queryFn: () => base44.entities.MarketAnalysis.list('-created_date', 1),
+    queryFn: () => entities.MarketAnalysis.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
@@ -149,15 +149,15 @@ export default function Stage4Quant() {
       };
 
       if (currentFinancials) {
-        return base44.entities.Financials.update(currentFinancials.id, financialData);
+        return entities.Financials.update(currentFinancials.id, financialData);
       }
-      return base44.entities.Financials.create(financialData);
+      return entities.Financials.create(financialData);
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['financials'] });
       // Update business stage
       if (currentBusiness && currentBusiness.current_stage < 5) {
-        await base44.entities.BusinessCore.update(currentBusiness.id, {
+        await entities.BusinessCore.update(currentBusiness.id, {
           current_stage: Math.max(currentBusiness.current_stage, 5),
           stage_completion: { ...currentBusiness.stage_completion, stage4: true }
         });
@@ -305,7 +305,7 @@ For EACH scenario, generate 6 years of data (Year 0 = current, Years 1-5 = proje
 
 Calculate industry-standard valuation multiplier for Year 5.`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",
@@ -1147,7 +1147,7 @@ For EACH scenario, calculate:
 - Overall business health impact (positive/neutral/negative)
 - Strategic recommendation`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",

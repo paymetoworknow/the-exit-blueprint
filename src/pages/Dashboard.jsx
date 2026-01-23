@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
-import { base44 } from '@/api/base44Client';
+import { entities } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 import { 
   Lightbulb, Building2, Rocket, Calculator, Shield, 
@@ -23,18 +23,18 @@ const stages = [
 export default function Dashboard() {
   const { data: businesses, isLoading } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date'),
+    queryFn: () => entities.BusinessCore.list('-created_date'),
   });
 
   const { data: financials } = useQuery({
     queryKey: ['financials'],
-    queryFn: () => base44.entities.Financials.list('-created_date', 1),
+    queryFn: () => entities.Financials.list('-created_date', 1),
     enabled: !!businesses?.length,
   });
 
   const { data: leads } = useQuery({
     queryKey: ['leads'],
-    queryFn: () => base44.entities.CRMLead.list(),
+    queryFn: () => entities.CRMLead.list(),
     enabled: !!businesses?.length,
   });
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Building2, Palette, Type, Sparkles, Save,
@@ -36,12 +36,12 @@ export default function Stage2Architect() {
 
   const { data: businesses, isLoading: loadingBusiness } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: brandAssets, isLoading: loadingBrand } = useQuery({
     queryKey: ['brand-assets'],
-    queryFn: () => base44.entities.BrandAssets.list('-created_date', 1),
+    queryFn: () => entities.BrandAssets.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
@@ -93,7 +93,7 @@ Provide:
 3. Brand voice recommendation
 4. 90-day SOP checklist (10-15 items) for launching this business with task names and descriptions`;
 
-        const brandResult = await base44.integrations.Core.InvokeLLM({
+        const brandResult = await integrations.Core.InvokeLLM({
           prompt: brandIdentityPrompt,
           response_json_schema: {
             type: "object",
@@ -139,7 +139,7 @@ Generate:
 5. Elevator pitch (30 seconds, conversational)
 6. Website hero section copy (headline + subheadline)`;
 
-        const marketingCopy = await base44.integrations.Core.InvokeLLM({
+        const marketingCopy = await integrations.Core.InvokeLLM({
           prompt: copyPrompt,
           response_json_schema: {
             type: "object",
@@ -164,7 +164,7 @@ Generate:
 
         // Generate all logos in parallel for better performance
         const logoPromises = logoPrompts.map(prompt => 
-          base44.integrations.Core.GenerateImage({ prompt })
+          integrations.Core.GenerateImage({ prompt })
             .then(result => result.url)
             .catch(err => {
               console.error('Logo generation failed:', err);
@@ -180,7 +180,7 @@ Generate:
         
         let faviconUrl = '';
         try {
-          const faviconResult = await base44.integrations.Core.GenerateImage({
+          const faviconResult = await integrations.Core.GenerateImage({
             prompt: faviconPrompt
           });
           faviconUrl = faviconResult.url;
@@ -207,14 +207,14 @@ Generate:
         };
 
         if (currentBrand) {
-          await base44.entities.BrandAssets.update(currentBrand.id, brandPayload);
+          await entities.BrandAssets.update(currentBrand.id, brandPayload);
         } else {
-          await base44.entities.BrandAssets.create(brandPayload);
+          await entities.BrandAssets.create(brandPayload);
         }
 
         // Update business stage
         if (currentBusiness.current_stage < 3) {
-          await base44.entities.BusinessCore.update(currentBusiness.id, {
+          await entities.BusinessCore.update(currentBusiness.id, {
             current_stage: 3,
             stage_completion: { ...currentBusiness.stage_completion, stage2: true }
           });
@@ -243,9 +243,9 @@ Generate:
       };
 
       if (currentBrand) {
-        return base44.entities.BrandAssets.update(currentBrand.id, payload);
+        return entities.BrandAssets.update(currentBrand.id, payload);
       }
-      return base44.entities.BrandAssets.create(payload);
+      return entities.BrandAssets.create(payload);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['brand-assets'] }),
   });
@@ -469,7 +469,7 @@ Generate:
             selectedLogo={currentBrand?.logo_url}
             onSelectLogo={async (url) => {
               if (currentBrand) {
-                await base44.entities.BrandAssets.update(currentBrand.id, { logo_url: url });
+                await entities.BrandAssets.update(currentBrand.id, { logo_url: url });
                 queryClient.invalidateQueries({ queryKey: ['brand-assets'] });
               }
             }}

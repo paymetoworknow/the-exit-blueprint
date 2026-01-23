@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 import { 
   FileText, Sparkles, Loader2, Download, CheckCircle,
@@ -16,32 +16,32 @@ export default function BusinessPlanGenerator() {
 
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: brandAssets } = useQuery({
     queryKey: ['brand-assets'],
-    queryFn: () => base44.entities.BrandAssets.list('-created_date', 1),
+    queryFn: () => entities.BrandAssets.list('-created_date', 1),
   });
 
   const { data: marketAnalysis } = useQuery({
     queryKey: ['market-analysis'],
-    queryFn: () => base44.entities.MarketAnalysis.list('-created_date', 1),
+    queryFn: () => entities.MarketAnalysis.list('-created_date', 1),
   });
 
   const { data: financials } = useQuery({
     queryKey: ['financials'],
-    queryFn: () => base44.entities.Financials.list('-created_date', 1),
+    queryFn: () => entities.Financials.list('-created_date', 1),
   });
 
   const { data: pitchDecks } = useQuery({
     queryKey: ['pitch-decks'],
-    queryFn: () => base44.entities.PitchDeck.list('-created_date', 1),
+    queryFn: () => entities.PitchDeck.list('-created_date', 1),
   });
 
   const { data: dueDiligence } = useQuery({
     queryKey: ['due-diligence'],
-    queryFn: () => base44.entities.DueDiligence.list('-created_date'),
+    queryFn: () => entities.DueDiligence.list('-created_date'),
   });
 
   const currentBusiness = businesses?.[0];

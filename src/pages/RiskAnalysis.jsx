@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Shield, AlertTriangle, AlertCircle, CheckCircle, RefreshCw,
@@ -33,32 +33,32 @@ export default function RiskAnalysis() {
 
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: marketData } = useQuery({
     queryKey: ['market-analysis'],
-    queryFn: () => base44.entities.MarketAnalysis.list('-created_date', 1),
+    queryFn: () => entities.MarketAnalysis.list('-created_date', 1),
   });
 
   const { data: financials } = useQuery({
     queryKey: ['financials'],
-    queryFn: () => base44.entities.Financials.list('-created_date', 1),
+    queryFn: () => entities.Financials.list('-created_date', 1),
   });
 
   const { data: brandAssets } = useQuery({
     queryKey: ['brand-assets'],
-    queryFn: () => base44.entities.BrandAssets.list('-created_date', 1),
+    queryFn: () => entities.BrandAssets.list('-created_date', 1),
   });
 
   const { data: leads } = useQuery({
     queryKey: ['crm-leads'],
-    queryFn: () => base44.entities.CRMLead.list(),
+    queryFn: () => entities.CRMLead.list(),
   });
 
   const { data: documents } = useQuery({
     queryKey: ['due-diligence'],
-    queryFn: () => base44.entities.DueDiligence.list(),
+    queryFn: () => entities.DueDiligence.list(),
   });
 
   const currentBusiness = businesses?.[0];
@@ -137,7 +137,7 @@ Also provide:
 - Top 3 priority actions
 - Positive observations (strengths to leverage)`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",

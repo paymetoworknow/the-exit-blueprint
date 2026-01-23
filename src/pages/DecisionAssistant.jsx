@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Zap, Plus, Sparkles, Loader2, CheckCircle,
@@ -28,24 +28,24 @@ export default function DecisionAssistant() {
 
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: decisions } = useQuery({
     queryKey: ['decisions'],
-    queryFn: () => base44.entities.Decision.list('-created_date'),
+    queryFn: () => entities.Decision.list('-created_date'),
     enabled: !!businesses?.[0],
   });
 
   const { data: financials } = useQuery({
     queryKey: ['financials'],
-    queryFn: () => base44.entities.Financials.list('-created_date', 1),
+    queryFn: () => entities.Financials.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
   const { data: marketData } = useQuery({
     queryKey: ['market-analysis'],
-    queryFn: () => base44.entities.MarketAnalysis.list('-created_date', 1),
+    queryFn: () => entities.MarketAnalysis.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
@@ -103,7 +103,7 @@ Then provide:
 - Implementation Roadmap (if you recommend moving forward)
 - Risk Mitigation Strategies`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",
@@ -138,7 +138,7 @@ Then provide:
         }
       });
 
-      await base44.entities.Decision.update(decisionId, {
+      await entities.Decision.update(decisionId, {
         ai_analysis: result,
         status: 'reviewed'
       });
@@ -152,7 +152,7 @@ Then provide:
 
   const createDecisionMutation = useMutation({
     mutationFn: async (data) => {
-      return base44.entities.Decision.create({
+      return entities.Decision.create({
         ...data,
         business_id: currentBusiness.id,
         status: 'analyzing'

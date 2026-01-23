@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   MessageSquare, Send, Sparkles, Loader2,
@@ -22,12 +22,12 @@ export default function Support() {
 
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: tickets } = useQuery({
     queryKey: ['support-tickets'],
-    queryFn: () => base44.entities.SupportTicket.list('-created_date'),
+    queryFn: () => entities.SupportTicket.list('-created_date'),
   });
 
   const currentBusiness = businesses?.[0];
@@ -132,19 +132,19 @@ User Question: ${userMessage}
 
 Provide a helpful, concise response. If the question is complex or requires account-specific help, suggest creating a support ticket.`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt: context,
       });
 
       // Save messages
-      await base44.entities.ChatMessage.create({
+      await entities.ChatMessage.create({
         business_id: currentBusiness?.id || 'anonymous',
         session_id: sessionId,
         role: 'user',
         content: userMessage
       });
 
-      await base44.entities.ChatMessage.create({
+      await entities.ChatMessage.create({
         business_id: currentBusiness?.id || 'anonymous',
         session_id: sessionId,
         role: 'assistant',
@@ -241,7 +241,7 @@ Provide:
 4. Relevant tags (array)
 5. AI-generated response or solution`;
 
-      const analysis = await base44.integrations.Core.InvokeLLM({
+      const analysis = await integrations.Core.InvokeLLM({
         prompt: analysisPrompt,
         response_json_schema: {
           type: "object",
@@ -255,7 +255,7 @@ Provide:
         }
       });
 
-      return base44.entities.SupportTicket.create({
+      return entities.SupportTicket.create({
         ...data,
         business_id: currentBusiness.id,
         ...analysis
@@ -408,7 +408,7 @@ Provide comprehensive analysis:
 5. Priority Breakdown
 6. Recommendations (what to focus on to improve support)`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 import { 
   Palette, Sparkles, Loader2, Download, Image as ImageIcon,
@@ -55,12 +55,12 @@ export default function BrandingAssets() {
 
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: brandAssets } = useQuery({
     queryKey: ['brand-assets'],
-    queryFn: () => base44.entities.BrandAssets.list('-created_date', 1),
+    queryFn: () => entities.BrandAssets.list('-created_date', 1),
   });
 
   const currentBusiness = businesses?.[0];
@@ -76,7 +76,7 @@ export default function BrandingAssets() {
       const images = [];
 
       for (let i = 0; i < type.variations; i++) {
-        const result = await base44.integrations.Core.GenerateImage({
+        const result = await integrations.Core.GenerateImage({
           prompt: `${basePrompt} Variation ${i + 1}`
         });
         images.push(result.url);

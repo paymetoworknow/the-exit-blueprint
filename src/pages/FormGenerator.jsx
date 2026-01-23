@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 import { 
   FileText, Sparkles, Loader2, Download, Search, 
@@ -98,12 +98,12 @@ export default function FormGenerator() {
 
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: financials } = useQuery({
     queryKey: ['financials'],
-    queryFn: () => base44.entities.Financials.list('-created_date', 1),
+    queryFn: () => entities.Financials.list('-created_date', 1),
   });
 
   const currentBusiness = businesses?.[0];
@@ -115,7 +115,7 @@ export default function FormGenerator() {
     try {
       const prompt = getFormPrompt(form, currentBusiness, financials?.[0]);
       
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",

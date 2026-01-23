@@ -13,7 +13,7 @@ This is a React-based SaaS application called "The Exit Blueprint" that helps en
 - **Styling**: Tailwind CSS 3.4 with tailwindcss-animate
 - **State Management**: TanStack Query (React Query) v5
 - **Form Handling**: React Hook Form with Zod validation
-- **Backend Integration**: Base44 SDK (@base44/sdk)
+- **Backend Integration**: Supabase (@supabase/supabase-js)
 - **Analytics**: Vercel Analytics and Speed Insights
 - **Other Key Libraries**: Framer Motion, Recharts, React Markdown, Lucide React icons
 
@@ -23,7 +23,7 @@ This is a React-based SaaS application called "The Exit Blueprint" that helps en
 - `/src/components/` - Reusable React components
 - `/src/components/ui/` - shadcn/ui components (do not lint these)
 - `/src/lib/` - Utility functions and shared libraries
-- `/src/api/` - API integration files (Supabase, Base44)
+- `/src/api/` - API integration files (Supabase)
 - `/src/hooks/` - Custom React hooks
 - `/src/utils/` - Utility functions
 - `/functions/` - Serverless functions
@@ -119,8 +119,8 @@ npm run preview  # Preview production build
 
 - Uses `.env.local` for local development
 - Required variables:
-  - `VITE_BASE44_APP_ID` - Base44 application ID
-  - `VITE_BASE44_APP_BASE_URL` - Base44 backend URL
+  - `VITE_SUPABASE_URL` - Supabase project URL
+  - `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
 - All environment variables must be prefixed with `VITE_` to be accessible
 
 ## Key Patterns
@@ -136,14 +136,22 @@ function MyComponent() {
 }
 ```
 
-### Data Fetching
+### Data Fetching with Supabase
 
 ```javascript
 import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/api/supabase';
 
 const { data, isLoading, error } = useQuery({
-  queryKey: ['key'],
-  queryFn: fetchFunction
+  queryKey: ['businesses'],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from('business_core')
+      .select('*')
+      .order('created_date', { ascending: false });
+    if (error) throw error;
+    return data;
+  }
 });
 ```
 
