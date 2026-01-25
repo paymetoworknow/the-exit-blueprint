@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Link2, Sparkles, Loader2, CheckCircle, RefreshCw,
@@ -17,12 +17,12 @@ export default function CRMIntegration() {
 
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: leads } = useQuery({
     queryKey: ['crm-leads'],
-    queryFn: () => base44.entities.CRMLead.list('-created_date'),
+    queryFn: () => entities.CRMLead.list('-created_date'),
   });
 
   const currentBusiness = businesses?.[0];
@@ -66,7 +66,7 @@ Provide comprehensive analysis:
 4. Revenue Insights (total pipeline value, average deal size, forecasted revenue)
 5. Actionable Recommendations (top 5 priorities to improve sales)`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Palette, Sparkles, Loader2, AlertCircle, CheckCircle, RefreshCw, MessageSquare
@@ -15,22 +15,22 @@ export default function BrandAudit() {
 
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: brandAssets } = useQuery({
     queryKey: ['brand-assets'],
-    queryFn: () => base44.entities.BrandAssets.list('-created_date', 1),
+    queryFn: () => entities.BrandAssets.list('-created_date', 1),
   });
 
   const { data: pitchDecks } = useQuery({
     queryKey: ['pitch-decks'],
-    queryFn: () => base44.entities.PitchDeck.list('-created_date', 1),
+    queryFn: () => entities.PitchDeck.list('-created_date', 1),
   });
 
   const { data: audits } = useQuery({
     queryKey: ['brand-audits'],
-    queryFn: () => base44.entities.BrandAudit.list('-created_date', 1),
+    queryFn: () => entities.BrandAudit.list('-created_date', 1),
   });
 
   const currentBusiness = businesses?.[0];
@@ -79,7 +79,7 @@ Provide:
 - Visual consistency notes
 - List of all inconsistencies with actionable fixes`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",
@@ -117,7 +117,7 @@ Provide:
         }
       });
 
-      await base44.entities.BrandAudit.create({
+      await entities.BrandAudit.create({
         business_id: currentBusiness.id,
         audit_date: new Date().toISOString(),
         overall_score: result.overall_score,

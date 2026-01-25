@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 import { 
   BarChart3, Download, Users, DollarSign, 
@@ -29,37 +29,37 @@ export default function Analytics() {
   // Fetch all data
   const { data: businesses, isLoading: loadingBusiness } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: financials, isLoading: loadingFinancials } = useQuery({
     queryKey: ['financials'],
-    queryFn: () => base44.entities.Financials.list('-created_date', 1),
+    queryFn: () => entities.Financials.list('-created_date', 1),
   });
 
   const { data: market, isLoading: loadingMarket } = useQuery({
     queryKey: ['market-analysis'],
-    queryFn: () => base44.entities.MarketAnalysis.list('-created_date', 1),
+    queryFn: () => entities.MarketAnalysis.list('-created_date', 1),
   });
 
   const { data: brand, isLoading: loadingBrand } = useQuery({
     queryKey: ['brand-assets'],
-    queryFn: () => base44.entities.BrandAssets.list('-created_date', 1),
+    queryFn: () => entities.BrandAssets.list('-created_date', 1),
   });
 
   const { data: leads, isLoading: loadingLeads } = useQuery({
     queryKey: ['crm-leads'],
-    queryFn: () => base44.entities.CRMLead.list('-created_date', 100),
+    queryFn: () => entities.CRMLead.list('-created_date', 100),
   });
 
   const { data: documents, isLoading: loadingDocs } = useQuery({
     queryKey: ['due-diligence'],
-    queryFn: () => base44.entities.DueDiligence.list('-created_date', 100),
+    queryFn: () => entities.DueDiligence.list('-created_date', 100),
   });
 
   const { data: pitchDecks } = useQuery({
     queryKey: ['pitch-decks'],
-    queryFn: () => base44.entities.PitchDeck.list('-created_date', 1),
+    queryFn: () => entities.PitchDeck.list('-created_date', 1),
   });
 
   const currentBusiness = businesses?.[0];

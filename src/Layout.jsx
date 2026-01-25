@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from './utils';
-import { base44 } from '@/api/base44Client';
+import { entities } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/lib/AuthContext';
 import { 
   Lightbulb, 
   Building2, 
@@ -47,17 +48,18 @@ const utilityPages = [
 export default function Layout({ children, currentPageName }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { logout } = useAuth();
 
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const currentBusiness = businesses?.[0];
   const currentStage = currentBusiness?.current_stage || 1;
 
   const handleLogout = () => {
-    base44.auth.logout();
+    logout();
   };
 
   return (

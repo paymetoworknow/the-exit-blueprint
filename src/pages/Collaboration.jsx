@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Share2, Mail, Eye, Clock, MessageSquare, Users,
@@ -34,30 +34,30 @@ export default function Collaboration() {
 
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: sharedContent } = useQuery({
     queryKey: ['shared-content'],
-    queryFn: () => base44.entities.SharedContent.list('-created_date'),
+    queryFn: () => entities.SharedContent.list('-created_date'),
     enabled: !!businesses?.[0],
   });
 
   const { data: feedback } = useQuery({
     queryKey: ['feedback'],
-    queryFn: () => base44.entities.Feedback.list('-created_date'),
+    queryFn: () => entities.Feedback.list('-created_date'),
     enabled: !!businesses?.[0],
   });
 
   const { data: financials } = useQuery({
     queryKey: ['financials'],
-    queryFn: () => base44.entities.Financials.list('-created_date', 1),
+    queryFn: () => entities.Financials.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
   const { data: marketData } = useQuery({
     queryKey: ['market-analysis'],
-    queryFn: () => base44.entities.MarketAnalysis.list('-created_date', 1),
+    queryFn: () => entities.MarketAnalysis.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
@@ -71,7 +71,7 @@ export default function Collaboration() {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + 30);
 
-      return base44.entities.SharedContent.create({
+      return entities.SharedContent.create({
         ...data,
         business_id: currentBusiness.id,
         share_token: token,
@@ -84,7 +84,7 @@ export default function Collaboration() {
   });
 
   const deleteShareMutation = useMutation({
-    mutationFn: (id) => base44.entities.SharedContent.delete(id),
+    mutationFn: (id) => entities.SharedContent.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['shared-content'] }),
   });
 
@@ -113,7 +113,7 @@ Provide a comprehensive analysis:
 5. Concerns Raised - What are the main worries or criticisms?
 6. Recommendations - What should the team focus on based on this feedback?`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",

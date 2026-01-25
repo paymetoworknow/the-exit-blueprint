@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,22 +32,22 @@ export default function InvestorOutreach() {
 
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: financials } = useQuery({
     queryKey: ['financials'],
-    queryFn: () => base44.entities.Financials.list('-created_date', 1),
+    queryFn: () => entities.Financials.list('-created_date', 1),
   });
 
   const { data: market } = useQuery({
     queryKey: ['market-analysis'],
-    queryFn: () => base44.entities.MarketAnalysis.list('-created_date', 1),
+    queryFn: () => entities.MarketAnalysis.list('-created_date', 1),
   });
 
   const { data: outreachRecords, isLoading: loadingOutreach } = useQuery({
     queryKey: ['investor-outreach'],
-    queryFn: () => base44.entities.InvestorOutreach.list('-created_date', 100),
+    queryFn: () => entities.InvestorOutreach.list('-created_date', 100),
   });
 
   const currentBusiness = businesses?.[0];
@@ -98,7 +98,7 @@ For each investor, provide:
 
 Rank by match score descending.`;
 
-      const analysis = await base44.integrations.Core.InvokeLLM({
+      const analysis = await integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",
@@ -139,7 +139,7 @@ Rank by match score descending.`;
 
   const saveToOutreachMutation = useMutation({
     mutationFn: async (investor) => {
-      return await base44.entities.InvestorOutreach.create({
+      return await entities.InvestorOutreach.create({
         business_id: currentBusiness.id,
         investor_name: investor.name,
         investor_email: investor.email,
@@ -193,7 +193,7 @@ Write a 300-400 word email with:
 
 Tone: Professional, confident, data-driven.`;
 
-      const emailResult = await base44.integrations.Core.InvokeLLM({
+      const emailResult = await integrations.Core.InvokeLLM({
         prompt: emailPrompt,
         response_json_schema: {
           type: "object",
@@ -205,7 +205,7 @@ Tone: Professional, confident, data-driven.`;
       });
 
       // Send email
-      await base44.integrations.Core.SendEmail({
+      await integrations.Core.SendEmail({
         to: investor.email,
         subject: emailResult.subject,
         body: emailResult.body
@@ -220,14 +220,14 @@ Tone: Professional, confident, data-driven.`;
       followUpDate.setDate(followUpDate.getDate() + 7);
 
       if (existingRecord) {
-        await base44.entities.InvestorOutreach.update(existingRecord.id, {
+        await entities.InvestorOutreach.update(existingRecord.id, {
           outreach_status: 'sent',
           email_sent_date: new Date().toISOString(),
           follow_up_date: followUpDate.toISOString(),
           email_content: emailResult.body
         });
       } else {
-        await base44.entities.InvestorOutreach.create({
+        await entities.InvestorOutreach.create({
           business_id: currentBusiness.id,
           investor_name: investor.name,
           investor_email: investor.email,
@@ -241,7 +241,7 @@ Tone: Professional, confident, data-driven.`;
       }
 
       // Add to CRM
-      await base44.entities.CRMLead.create({
+      await entities.CRMLead.create({
         business_id: currentBusiness.id,
         name: investor.partner,
         company: investor.name,
@@ -264,7 +264,7 @@ Tone: Professional, confident, data-driven.`;
 
   const updateStatusMutation = useMutation({
     mutationFn: async ({ recordId, status }) => {
-      return await base44.entities.InvestorOutreach.update(recordId, {
+      return await entities.InvestorOutreach.update(recordId, {
         outreach_status: status,
         response_received: status === 'responded'
       });

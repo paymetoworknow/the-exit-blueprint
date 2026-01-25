@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Shield, FileText, Upload, FolderOpen, Lock, Trash2, CheckCircle, AlertCircle, Clock,
@@ -50,24 +50,24 @@ export default function Stage5Exit() {
 
   const { data: businesses, isLoading: loadingBusiness } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: marketAnalysis } = useQuery({
     queryKey: ['market-analysis'],
-    queryFn: () => base44.entities.MarketAnalysis.list('-created_date', 1),
+    queryFn: () => entities.MarketAnalysis.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
   const { data: financials } = useQuery({
     queryKey: ['financials'],
-    queryFn: () => base44.entities.Financials.list('-created_date', 1),
+    queryFn: () => entities.Financials.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
   const { data: documents } = useQuery({
     queryKey: ['due-diligence'],
-    queryFn: () => base44.entities.DueDiligence.list('-created_date'),
+    queryFn: () => entities.DueDiligence.list('-created_date'),
     enabled: !!businesses?.[0],
   });
 
@@ -100,7 +100,7 @@ Common due diligence red flags to look for:
 - Expired contracts or licenses
 - Undisclosed liabilities`;
 
-          const analysis = await base44.integrations.Core.InvokeLLM({
+          const analysis = await integrations.Core.InvokeLLM({
             prompt: analysisPrompt,
             file_urls: [data.file_url],
             response_json_schema: {
@@ -120,7 +120,7 @@ Common due diligence red flags to look for:
         }
       }
 
-      return base44.entities.DueDiligence.create({
+      return entities.DueDiligence.create({
         ...data,
         business_id: currentBusiness.id,
         status: aiAnalysis?.suggested_status || 'uploaded',
@@ -134,7 +134,7 @@ Common due diligence red flags to look for:
   });
 
   const deleteDocumentMutation = useMutation({
-    mutationFn: (id) => base44.entities.DueDiligence.delete(id),
+    mutationFn: (id) => entities.DueDiligence.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['due-diligence'] }),
   });
 
@@ -182,7 +182,7 @@ Create:
 5. Risk factors (2-3 points)
 6. Recommended asking price range`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",
@@ -537,7 +537,7 @@ function DocumentUploadForm({ onSubmit, isLoading }) {
     if (!file) return;
     
     setIsUploading(true);
-    const result = await base44.integrations.Core.UploadFile({ file });
+    const result = await integrations.Core.UploadFile({ file });
     setFormData(p => ({ ...p, file_url: result.file_url, document_name: p.document_name || file.name }));
     setIsUploading(false);
   };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
+import { supabase } from '@/api/supabase';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Rocket, Presentation, Users, Plus, Trash2,
@@ -45,30 +46,30 @@ export default function Stage3Engine() {
 
   const { data: businesses, isLoading: loadingBusiness } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: marketAnalysis } = useQuery({
     queryKey: ['market-analysis'],
-    queryFn: () => base44.entities.MarketAnalysis.list('-created_date', 1),
+    queryFn: () => entities.MarketAnalysis.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
   const { data: financials } = useQuery({
     queryKey: ['financials'],
-    queryFn: () => base44.entities.Financials.list('-created_date', 1),
+    queryFn: () => entities.Financials.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
   const { data: pitchDecks } = useQuery({
     queryKey: ['pitch-decks'],
-    queryFn: () => base44.entities.PitchDeck.list('-created_date', 1),
+    queryFn: () => entities.PitchDeck.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
   const { data: leads } = useQuery({
     queryKey: ['leads'],
-    queryFn: () => base44.entities.CRMLead.list('-created_date'),
+    queryFn: () => entities.CRMLead.list('-created_date'),
     enabled: !!businesses?.[0],
   });
 
@@ -165,7 +166,7 @@ For EACH slide, provide:
 - data_points array with key metrics formatted as {label, value}
 - Make slides 4, 6, 7, 9 extremely data-rich with all available numbers`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         add_context_from_internet: false,
         response_json_schema: {
@@ -207,14 +208,14 @@ For EACH slide, provide:
       };
 
       if (currentDeck) {
-        await base44.entities.PitchDeck.update(currentDeck.id, deckPayload);
+        await entities.PitchDeck.update(currentDeck.id, deckPayload);
       } else {
-        await base44.entities.PitchDeck.create(deckPayload);
+        await entities.PitchDeck.create(deckPayload);
       }
 
       // Update business stage
       if (currentBusiness.current_stage < 4) {
-        await base44.entities.BusinessCore.update(currentBusiness.id, {
+        await entities.BusinessCore.update(currentBusiness.id, {
           current_stage: 4,
           stage_completion: { ...currentBusiness.stage_completion, stage3: true }
         });
@@ -462,7 +463,7 @@ function CRMDashboard({ leads, businessId, queryClient }) {
   const [filter, setFilter] = useState('all');
 
   const createLeadMutation = useMutation({
-    mutationFn: (data) => base44.entities.CRMLead.create({ ...data, business_id: businessId }),
+    mutationFn: (data) => entities.CRMLead.create({ ...data, business_id: businessId }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       setIsAddingLead(false);
@@ -470,7 +471,7 @@ function CRMDashboard({ leads, businessId, queryClient }) {
   });
 
   const updateLeadMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.CRMLead.update(id, data),
+    mutationFn: ({ id, data }) => entities.CRMLead.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       setEditingLead(null);
@@ -478,7 +479,7 @@ function CRMDashboard({ leads, businessId, queryClient }) {
   });
 
   const deleteLeadMutation = useMutation({
-    mutationFn: (id) => base44.entities.CRMLead.delete(id),
+    mutationFn: (id) => entities.CRMLead.delete(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['leads'] }),
   });
 
@@ -752,8 +753,11 @@ function InvestorNetwork({ businessId, business, pitchDeck, queryClient, searchR
   const handleSearch = async () => {
     setIsSearching(true);
     try {
-      const result = await base44.functions.invoke('searchInvestors', filters);
-      setSearchResults(result.data.investors || []);
+      const { data, error } = await supabase.functions.invoke('searchInvestors', {
+        body: filters
+      });
+      if (error) throw error;
+      setSearchResults(data.investors || []);
     } catch (error) {
       console.error('Search failed:', error);
     }
@@ -790,7 +794,7 @@ function InvestorNetwork({ businessId, business, pitchDeck, queryClient, searchR
       });
 
       // Add to CRM
-      await base44.entities.CRMLead.create({
+      await entities.CRMLead.create({
         business_id: businessId,
         name: investor.partner,
         company: investor.name,
@@ -1001,7 +1005,7 @@ function InvestorNetwork({ businessId, business, pitchDeck, queryClient, searchR
                   size="icon"
                   className="border-white/10"
                   onClick={async () => {
-                    await base44.entities.CRMLead.create({
+                    await entities.CRMLead.create({
                       business_id: businessId,
                       name: investor.partner,
                       company: investor.name,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -61,7 +61,7 @@ For EACH investor, provide:
 
 Rank by match score.`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         add_context_from_internet: false,
         response_json_schema: {
@@ -97,7 +97,7 @@ Rank by match score.`;
       const topMatches = enrichedMatches.slice(0, 10);
       for (const match of topMatches) {
         try {
-          await base44.entities.InvestorOutreach.create({
+          await entities.InvestorOutreach.create({
             business_id: currentBusiness.id,
             investor_name: match.investor_name,
             investor_email: match.investor_email || match.email,
@@ -156,7 +156,7 @@ Write a concise, compelling email (300-400 words) that:
 
 Tone: Professional but warm, confident without being arrogant`;
 
-      const emailResult = await base44.integrations.Core.InvokeLLM({
+      const emailResult = await integrations.Core.InvokeLLM({
         prompt: emailPrompt,
         response_json_schema: {
           type: "object",
@@ -168,14 +168,14 @@ Tone: Professional but warm, confident without being arrogant`;
       });
 
       // Send email
-      await base44.integrations.Core.SendEmail({
+      await integrations.Core.SendEmail({
         to: investor.investor_email || investor.email,
         subject: emailResult.subject,
         body: emailResult.body
       });
 
       // Update outreach record
-      const outreachRecord = await base44.entities.InvestorOutreach.filter({
+      const outreachRecord = await entities.InvestorOutreach.filter({
         business_id: currentBusiness.id,
         investor_email: investor.investor_email || investor.email
       });
@@ -184,7 +184,7 @@ Tone: Professional but warm, confident without being arrogant`;
         const followUpDate = new Date();
         followUpDate.setDate(followUpDate.getDate() + 7);
 
-        await base44.entities.InvestorOutreach.update(outreachRecord[0].id, {
+        await entities.InvestorOutreach.update(outreachRecord[0].id, {
           outreach_status: 'sent',
           email_sent_date: new Date().toISOString(),
           follow_up_date: followUpDate.toISOString(),
@@ -193,7 +193,7 @@ Tone: Professional but warm, confident without being arrogant`;
       }
 
       // Add to CRM
-      await base44.entities.CRMLead.create({
+      await entities.CRMLead.create({
         business_id: currentBusiness.id,
         name: investor.partner,
         company: investor.name,

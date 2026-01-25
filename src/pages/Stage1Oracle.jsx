@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Lightbulb, Sparkles, Save,
@@ -45,12 +45,12 @@ export default function Stage1Oracle() {
 
   const { data: businesses, isLoading } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: marketAnalysis } = useQuery({
     queryKey: ['market-analysis'],
-    queryFn: () => base44.entities.MarketAnalysis.list('-created_date', 1),
+    queryFn: () => entities.MarketAnalysis.list('-created_date', 1),
     enabled: !!businesses?.[0],
   });
 
@@ -86,9 +86,9 @@ export default function Stage1Oracle() {
   const saveMutation = useMutation({
     mutationFn: async (data) => {
       if (currentBusiness) {
-        return base44.entities.BusinessCore.update(currentBusiness.id, data);
+        return entities.BusinessCore.update(currentBusiness.id, data);
       }
-      return base44.entities.BusinessCore.create({ ...data, current_stage: 1, confidence_score: 0 });
+      return entities.BusinessCore.create({ ...data, current_stage: 1, confidence_score: 0 });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['businesses'] }),
   });
@@ -116,7 +116,7 @@ Provide:
 5. Top 3 competitors with brief descriptions
 6. Market growth rate percentage`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt: analysisPrompt,
         add_context_from_internet: true,
         response_json_schema: {
@@ -170,19 +170,19 @@ Provide:
 
       // Save market analysis
       if (currentMarket) {
-        await base44.entities.MarketAnalysis.update(currentMarket.id, {
+        await entities.MarketAnalysis.update(currentMarket.id, {
           ...result,
           business_id: currentBusiness.id
         });
       } else {
-        await base44.entities.MarketAnalysis.create({
+        await entities.MarketAnalysis.create({
           ...result,
           business_id: currentBusiness.id
         });
       }
 
       // Update business confidence score and stage
-      await base44.entities.BusinessCore.update(currentBusiness.id, {
+      await entities.BusinessCore.update(currentBusiness.id, {
         confidence_score: result.market_confidence,
         current_stage: result.market_confidence >= 40 ? 2 : 1,
         stage_completion: { stage1: true }
@@ -326,7 +326,7 @@ For EACH competitor, provide detailed analysis using real web data:
 9. Target customer segments
 10. Competitive advantages`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         add_context_from_internet: true,
         response_json_schema: {
@@ -357,7 +357,7 @@ For EACH competitor, provide detailed analysis using real web data:
       });
 
       if (currentMarket) {
-        await base44.entities.MarketAnalysis.update(currentMarket.id, {
+        await entities.MarketAnalysis.update(currentMarket.id, {
           competitors: result.competitors
         });
       }

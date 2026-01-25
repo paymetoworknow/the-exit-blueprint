@@ -1,14 +1,14 @@
-**Welcome to your project** 
+**Welcome to The Exit Blueprint** 
 
 **About**
 
-View and Edit  your app on  
+This is a React-based SaaS application that helps entrepreneurs plan and execute business exits using Supabase as the backend.
 
-This project contains everything you need to run your app locally.
+This project contains everything you need to run your app locally with self-hosted capabilities.
 
 **Edit the code in your local development environment**
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+Any change pushed to the repo will be reflected immediately.
 
 **Prerequisites:** 
 
@@ -18,22 +18,23 @@ Any change pushed to the repo will also be reflected in the Base44 Builder.
 4. Create an `.env.local` file and set the right environment variables
 
 ```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
+VITE_SUPABASE_URL=https://xyzcompany.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
 Run the app: `npm run dev`
 
-**Publish your changes**
+**Tech Stack**
 
-Open [Base44.com](http://Base44.com) and click on Publish.
+- Frontend: React 18 with Vite
+- Backend: Supabase (PostgreSQL database, authentication, and storage)
+- UI: Tailwind CSS with shadcn/ui components
+- State Management: TanStack Query (React Query)
 
 **Docs & Support**
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
-
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+Documentation: See [Supabase Documentation](https://supabase.com/docs)

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +34,7 @@ For EACH competitor, provide detailed analysis:
 
 Use real-world data from the internet and current market intelligence.`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         add_context_from_internet: true,
         response_json_schema: {
@@ -66,7 +66,7 @@ Use real-world data from the internet and current market intelligence.`;
 
       // Update market analysis with competitor data
       if (currentMarket) {
-        await base44.entities.MarketAnalysis.update(currentMarket.id, {
+        await entities.MarketAnalysis.update(currentMarket.id, {
           competitors: result.competitors
         });
       }

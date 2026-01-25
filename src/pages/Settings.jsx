@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Settings, Trash2, AlertTriangle, Loader2, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ export default function SettingsPage() {
 
   const { data: businesses, isLoading } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const currentBusiness = businesses?.[0];
@@ -25,26 +25,26 @@ export default function SettingsPage() {
     mutationFn: async () => {
       // Delete all related data
       const [market, brand, financials, leads, docs, decks] = await Promise.all([
-        base44.entities.MarketAnalysis.filter({ business_id: currentBusiness.id }),
-        base44.entities.BrandAssets.filter({ business_id: currentBusiness.id }),
-        base44.entities.Financials.filter({ business_id: currentBusiness.id }),
-        base44.entities.CRMLead.filter({ business_id: currentBusiness.id }),
-        base44.entities.DueDiligence.filter({ business_id: currentBusiness.id }),
-        base44.entities.PitchDeck.filter({ business_id: currentBusiness.id }),
+        entities.MarketAnalysis.filter({ business_id: currentBusiness.id }),
+        entities.BrandAssets.filter({ business_id: currentBusiness.id }),
+        entities.Financials.filter({ business_id: currentBusiness.id }),
+        entities.CRMLead.filter({ business_id: currentBusiness.id }),
+        entities.DueDiligence.filter({ business_id: currentBusiness.id }),
+        entities.PitchDeck.filter({ business_id: currentBusiness.id }),
       ]);
 
       // Delete all related records
       await Promise.all([
-        ...market.map(m => base44.entities.MarketAnalysis.delete(m.id)),
-        ...brand.map(b => base44.entities.BrandAssets.delete(b.id)),
-        ...financials.map(f => base44.entities.Financials.delete(f.id)),
-        ...leads.map(l => base44.entities.CRMLead.delete(l.id)),
-        ...docs.map(d => base44.entities.DueDiligence.delete(d.id)),
-        ...decks.map(d => base44.entities.PitchDeck.delete(d.id)),
+        ...market.map(m => entities.MarketAnalysis.delete(m.id)),
+        ...brand.map(b => entities.BrandAssets.delete(b.id)),
+        ...financials.map(f => entities.Financials.delete(f.id)),
+        ...leads.map(l => entities.CRMLead.delete(l.id)),
+        ...docs.map(d => entities.DueDiligence.delete(d.id)),
+        ...decks.map(d => entities.PitchDeck.delete(d.id)),
       ]);
 
       // Delete the business
-      await base44.entities.BusinessCore.delete(currentBusiness.id);
+      await entities.BusinessCore.delete(currentBusiness.id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries();

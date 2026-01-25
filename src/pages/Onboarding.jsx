@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,17 +33,17 @@ export default function Onboarding() {
 
   const { data: existingBusiness } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const { data: existingBrand } = useQuery({
     queryKey: ['brand-assets'],
-    queryFn: () => base44.entities.BrandAssets.list('-created_date', 1),
+    queryFn: () => entities.BrandAssets.list('-created_date', 1),
   });
 
   const { data: existingGoals } = useQuery({
     queryKey: ['sales-goals'],
-    queryFn: () => base44.entities.SalesGoal.list('-created_date', 1),
+    queryFn: () => entities.SalesGoal.list('-created_date', 1),
   });
 
   // Check if already onboarded
@@ -64,7 +64,7 @@ export default function Onboarding() {
     };
 
     try {
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt: `${prompts[step]}\n\nRemember: You are Aria, the vCOO of The Exit Blueprint. Be professional, encouraging, and concise.`,
         add_context_from_internet: false
       });
@@ -209,7 +209,7 @@ function BusinessProfileStep({ onNext }) {
 
   const createBusinessMutation = useMutation({
     mutationFn: async (data) => {
-      return await base44.entities.BusinessCore.create({
+      return await entities.BusinessCore.create({
         ...data,
         current_stage: 1,
         confidence_score: 0
@@ -421,7 +421,7 @@ function SalesGoalsStep({ onNext }) {
   const queryClient = useQueryClient();
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const [goals, setGoals] = useState([
@@ -439,7 +439,7 @@ function SalesGoalsStep({ onNext }) {
       const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
       for (const goal of goals) {
-        await base44.entities.SalesGoal.create({
+        await entities.SalesGoal.create({
           business_id: business.id,
           ...goal,
           start_date: today.toISOString().split('T')[0],
@@ -544,7 +544,7 @@ function BrandingAssetsStep({ onComplete }) {
   const queryClient = useQueryClient();
   const { data: businesses } = useQuery({
     queryKey: ['businesses'],
-    queryFn: () => base44.entities.BusinessCore.list('-created_date', 1),
+    queryFn: () => entities.BusinessCore.list('-created_date', 1),
   });
 
   const [formData, setFormData] = useState({
@@ -559,7 +559,7 @@ function BrandingAssetsStep({ onComplete }) {
       const business = businesses?.[0];
       if (!business) return;
 
-      return await base44.entities.BrandAssets.create({
+      return await entities.BrandAssets.create({
         business_id: business.id,
         ...data
       });
