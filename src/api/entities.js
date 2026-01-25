@@ -105,17 +105,20 @@ export const entities = {
   SalesGoal: createEntity('sales_goal'),
 };
 
-// AI Integration placeholder - to be replaced with self-hosted AI
+// AI Integration with OpenAI Agent
+import { invokeOpenAIAgent, DOMAIN_KEY } from './openai';
+
 export const integrations = {
   Core: {
     async InvokeLLM({ prompt, add_context_from_internet = false, response_json_schema = null }) {
-      // TODO: Implement self-hosted AI agent integration
-      // For now, return a placeholder response
-      console.warn('AI Integration not yet implemented. Returning placeholder.');
-      
-      // This would be replaced with actual API call to self-hosted AI
-      // For example: OpenAI API, Anthropic API, or local LLM
-      throw new Error('AI Integration needs to be configured with a self-hosted AI agent. See AI_INTEGRATION_TODO.md for implementation options.');
+      return await invokeOpenAIAgent({
+        prompt,
+        add_context_from_internet,
+        response_json_schema
+      });
     }
   }
 };
+
+// Export domain key for reference
+export { DOMAIN_KEY };
