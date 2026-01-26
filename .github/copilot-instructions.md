@@ -28,6 +28,43 @@ This is a React-based SaaS application called "The Exit Blueprint" that helps en
 - `/src/utils/` - Utility functions
 - `/functions/` - Serverless functions
 
+## File Organization Guidelines
+
+### Component Structure
+
+- Each component file should export one primary component
+- Group related components in subdirectories when appropriate
+- Co-locate component-specific utilities in the same directory
+- Use index files for cleaner imports from directories
+
+### File Naming
+
+- Components: `ComponentName.jsx` (PascalCase)
+- Utilities: `utilityName.js` (camelCase)
+- Hooks: `useHookName.js` (camelCase starting with 'use')
+- Constants: `CONSTANTS.js` (UPPER_SNAKE_CASE)
+- API files: `apiName.js` (camelCase)
+
+### Import Order
+
+1. External dependencies (React, libraries)
+2. Internal components
+3. Hooks
+4. Utilities and helpers
+5. Types/constants
+6. Styles (if any)
+
+Example:
+```javascript
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { useAuth } from '@/lib/AuthContext';
+import { formatCurrency } from '@/utils/formatters';
+import { API_ENDPOINTS } from '@/utils/constants';
+```
+
 ## Coding Conventions
 
 ### JavaScript/React
@@ -166,6 +203,61 @@ function MyComponent() {
 }
 ```
 
+### Error Handling
+
+```javascript
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
+
+// Query with error handling
+const { data, isLoading, error } = useQuery({
+  queryKey: ['businesses', id],
+  queryFn: fetchBusiness
+});
+
+// Handle query errors in the component
+if (error) {
+  toast.error('Failed to load business data');
+  console.error('Business fetch error:', error);
+}
+
+// Mutation with error handling
+const mutation = useMutation({
+  mutationFn: updateBusiness,
+  onSuccess: () => {
+    toast.success('Business updated successfully');
+  }
+});
+
+// Use the mutation
+const handleUpdate = async () => {
+  try {
+    await mutation.mutateAsync(businessData);
+  } catch (error) {
+    toast.error('Failed to update business');
+    console.error('Update error:', error);
+  }
+};
+```
+
+### Loading States
+
+```javascript
+function MyComponent() {
+  const { data, isLoading, error } = useQuery({...});
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Or use a Skeleton component
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  return <div>{/* Render data */}</div>;
+}
+```
+
 ## Common Pitfalls to Avoid
 
 - Don't modify files in `src/components/ui/` - these are managed by shadcn/ui
@@ -176,14 +268,102 @@ function MyComponent() {
 - Always check authentication before accessing protected features
 - Don't commit `.env.local` file
 
+## Performance Best Practices
+
+- Use React Query's caching to avoid unnecessary API calls
+- Implement pagination for large data sets
+- Use React.memo() for expensive components that receive the same props
+- Lazy load routes and components with React.lazy() and Suspense
+- Optimize images: use appropriate formats and sizes
+- Debounce search inputs and frequent operations
+- Use `useMemo` and `useCallback` hooks judiciously to prevent unnecessary re-renders
+  - Only use when there's actual performance benefit (profiled or measured)
+  - Avoid premature optimization - these hooks have overhead
+  - Good use cases: expensive calculations, stable references for dependencies
+
+## When to Use Specific Libraries
+
+- **Framer Motion**: Use for complex animations and page transitions
+- **Recharts**: Use for data visualization and charts
+- **React Markdown**: Use for rendering markdown content (e.g., AI responses)
+- **React Hook Form**: Use for all forms with validation
+- **Zod**: Use for schema validation in forms and API responses
+- **TanStack Query**: Use for all server state management (fetching, caching, updating)
+- **Lucide React**: Use for icons throughout the application
+- **Sonner**: Use for toast notifications
+- **Canvas Confetti**: Use for celebration effects (e.g., successful exits)
+
 ## Dependencies
 
 - When adding new dependencies, prefer packages that work well with React 18 and Vite
 - Check compatibility with the existing ESM module system
 - Use npm for package management (npm install, not yarn or pnpm)
 
+## Accessibility Guidelines
+
+- Use semantic HTML elements (button, nav, main, etc.)
+- Ensure all interactive elements are keyboard accessible
+- Provide meaningful aria-labels for icons and actions
+- Use proper heading hierarchy (h1, h2, h3, etc.)
+- Ensure sufficient color contrast for text and UI elements
+- Include alt text for images
+- Use focus indicators for keyboard navigation
+- Radix UI components are already accessible, but ensure proper implementation
+
+## UI/UX Patterns
+
+- Provide immediate feedback for user actions (loading states, success/error messages)
+- Use consistent spacing and sizing from Tailwind's design tokens
+- Follow the established color scheme using CSS variables
+- Implement responsive design: mobile-first approach
+- Use skeleton loaders for better perceived performance
+- Maintain consistent navigation patterns across pages
+- Group related actions and information logically
+
+## Git Workflow
+
+### Branching Strategy
+
+- Main branch: `main` - production-ready code
+- Feature branches: Use descriptive names (e.g., `feature/user-authentication`, `fix/navigation-bug`)
+- Keep branches focused on a single feature or fix
+
+### Commit Messages
+
+- Use conventional commits format: `type(scope): description`
+- Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+- Examples:
+  - `feat(auth): add social login with Google`
+  - `fix(dashboard): correct data loading state`
+  - `docs(readme): update installation instructions`
+
+### Pull Requests
+
+- Create focused PRs that address a single concern
+- Include a clear description of changes and why they were made
+- Reference any related issues
+- Ensure all checks pass before requesting review
+
+## Security Best Practices
+
+- Never commit secrets, API keys, or credentials to the repository
+- Always use environment variables for sensitive data
+- Validate and sanitize user inputs
+- Use prepared statements or parameterized queries when working with databases
+- Keep dependencies up to date to avoid known vulnerabilities
+- Follow the principle of least privilege for authentication and authorization
+- Use HTTPS for all external API calls
+
+## Deployment
+
+- Production deployment is handled via Vercel
+- Preview deployments are automatically created for PRs
+- Environment variables must be configured in Vercel dashboard
+- Serverless functions in `/functions/` are deployed as edge functions
+
 ## Documentation
 
 - Keep this file updated as conventions evolve
 - Document complex business logic with JSDoc comments
 - Use inline comments sparingly; prefer self-documenting code
+- Update API documentation when endpoints change
