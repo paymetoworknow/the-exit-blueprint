@@ -25,6 +25,8 @@ When creating or modifying React components, ensure:
    - Use `.jsx` extension for all React components
    - Use PascalCase for component names
    - Export component as default when appropriate
+   - Note: React import not needed for JSX (React 18+ automatic transform)
+   - Import React only when using React APIs directly (React.memo, React.lazy, etc.)
 
 2. **Imports**
    - Use `@/` alias for internal imports

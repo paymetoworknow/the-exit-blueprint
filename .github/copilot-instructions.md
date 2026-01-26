@@ -268,7 +268,10 @@ function MyComponent() {
 - Lazy load routes and components with React.lazy() and Suspense
 - Optimize images: use appropriate formats and sizes
 - Debounce search inputs and frequent operations
-- Use the `useMemo` and `useCallback` hooks appropriately to prevent unnecessary re-renders
+- Use `useMemo` and `useCallback` hooks judiciously to prevent unnecessary re-renders
+  - Only use when there's actual performance benefit (profiled or measured)
+  - Avoid premature optimization - these hooks have overhead
+  - Good use cases: expensive calculations, stable references for dependencies
 
 ## When to Use Specific Libraries
 
