@@ -40,7 +40,7 @@ When creating or modifying React components, ensure:
    import { useAuth } from '@/lib/AuthContext';
 
    const MyComponent = ({ prop1, prop2 }) => {
-     const [state, setState] = useState(initialValue);
+     const [state, setState] = useState('');
      const { user } = useAuth();
 
      // Component logic here
@@ -96,7 +96,6 @@ When creating or modifying React components, ensure:
 ## Example Component
 
 ```javascript
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
