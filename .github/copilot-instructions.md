@@ -212,24 +212,32 @@ import { toast } from 'sonner';
 // Query with error handling
 const { data, isLoading, error } = useQuery({
   queryKey: ['businesses', id],
-  queryFn: fetchBusiness,
-  onError: (error) => {
-    toast.error('Failed to load business data');
-    console.error('Business fetch error:', error);
-  }
+  queryFn: fetchBusiness
 });
+
+// Handle query errors in the component
+if (error) {
+  toast.error('Failed to load business data');
+  console.error('Business fetch error:', error);
+}
 
 // Mutation with error handling
 const mutation = useMutation({
   mutationFn: updateBusiness,
   onSuccess: () => {
     toast.success('Business updated successfully');
-  },
-  onError: (error) => {
+  }
+});
+
+// Use the mutation
+const handleUpdate = async () => {
+  try {
+    await mutation.mutateAsync(businessData);
+  } catch (error) {
     toast.error('Failed to update business');
     console.error('Update error:', error);
   }
-});
+};
 ```
 
 ### Loading States
