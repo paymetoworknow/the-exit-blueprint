@@ -25,8 +25,8 @@ When creating or modifying React components, ensure:
    - Use `.jsx` extension for all React components
    - Use PascalCase for component names
    - Export component as default when appropriate
-   - Note: React import not needed for JSX (React 18+ automatic transform)
-   - Import React only when using React APIs directly (React.memo, React.lazy, etc.)
+   - No need to import React for JSX (React 18+ automatic transform)
+   - Import React only when using specific React APIs (e.g., `import { memo } from 'react'` for React.memo)
 
 2. **Imports**
    - Use `@/` alias for internal imports
@@ -79,10 +79,10 @@ When creating or modifying React components, ensure:
    - Verify color contrast meets WCAG standards
 
 8. **Performance**
-   - Use React.memo() only when necessary
+   - Use React.memo() for components with complex props that re-render frequently due to parent updates
    - Implement lazy loading for heavy components
-   - Avoid inline functions in JSX when possible
-   - Use useMemo and useCallback appropriately
+   - Avoid inline functions in JSX when they're used as dependencies
+   - Use useMemo for expensive calculations and useCallback for stable function references (but avoid premature optimization)
 
 ## What NOT to Do
 
