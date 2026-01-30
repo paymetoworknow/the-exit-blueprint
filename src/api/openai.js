@@ -3,17 +3,32 @@ import OpenAI from 'openai';
 // OpenAI Agent Configuration with Domain Key
 const DOMAIN_KEY = 'domain_pk_6975eb4c348081939e1a0714ec2c67850c789740bb9d121d';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true // Required for client-side usage
-});
+// Check if OpenAI API key is configured
+const hasOpenAIKey = import.meta.env.VITE_OPENAI_API_KEY && 
+  import.meta.env.VITE_OPENAI_API_KEY !== 'sk-your-openai-api-key-here';
+
+// Initialize OpenAI client only if API key exists
+let openai = null;
+if (hasOpenAIKey) {
+  openai = new OpenAI({
+    apiKey: import.meta.env.VITE_OPENAI_API_KEY,
+    dangerouslyAllowBrowser: true // Required for client-side usage
+  });
+}
 
 /**
  * OpenAI Agent Integration
  * Invokes OpenAI with the configured domain key
  */
 export async function invokeOpenAIAgent({ prompt, add_context_from_internet = false, response_json_schema = null }) {
+  // Check if OpenAI is configured
+  if (!openai) {
+    throw new Error(
+      'OpenAI API is not configured. Please add VITE_OPENAI_API_KEY to your .env.local file. ' +
+      'Alternatively, you can use the self-hosted Ollama option by setting VITE_USE_OLLAMA=true.'
+    );
+  }
+
   try {
     const messages = [
       {

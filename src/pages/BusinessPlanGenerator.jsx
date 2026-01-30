@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { entities } from '@/api/entities';
+import { entities, integrations } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 import { 
   FileText, Sparkles, Loader2, Download, CheckCircle,
@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import GlassCard from '@/components/ui/GlassCard';
 import StageHeader from '@/components/ui/StageHeader';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function BusinessPlanGenerator() {
+  const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [businessPlan, setBusinessPlan] = useState(null);
 
@@ -171,7 +173,7 @@ Generate a COMPLETE, DETAILED business plan with these sections:
 
 Write in a professional, compelling tone. Use specific data points. Make it investor-ready.`;
 
-      const result = await base44.integrations.Core.InvokeLLM({
+      const result = await integrations.Core.InvokeLLM({
         prompt,
         response_json_schema: {
           type: "object",
@@ -197,9 +199,17 @@ Write in a professional, compelling tone. Use specific data points. Make it inve
         generation_date: new Date().toLocaleDateString(),
         business_name: currentBusiness?.business_name
       });
+      toast({
+        title: "Business Plan Generated!",
+        description: "Your comprehensive business plan is ready to review.",
+      });
     } catch (error) {
       console.error('Business plan generation failed:', error);
-      alert('Failed to generate business plan. Please try again.');
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate business plan. Please check your AI configuration.",
+        variant: "destructive",
+      });
     }
     setIsGenerating(false);
   };

@@ -105,17 +105,48 @@ export const entities = {
   SalesGoal: createEntity('sales_goal'),
 };
 
-// AI Integration with OpenAI Agent
+// AI Integration with OpenAI Agent or Ollama
 import { invokeOpenAIAgent, DOMAIN_KEY } from './openai';
+import { invokeOllamaAgent } from './ollama';
+
+// Determine which AI provider to use
+const useOllama = import.meta.env.VITE_USE_OLLAMA === 'true';
+const hasOpenAIKey = import.meta.env.VITE_OPENAI_API_KEY && 
+  import.meta.env.VITE_OPENAI_API_KEY !== 'sk-your-openai-api-key-here';
 
 export const integrations = {
   Core: {
     async InvokeLLM({ prompt, add_context_from_internet = false, response_json_schema = null }) {
-      return await invokeOpenAIAgent({
-        prompt,
-        add_context_from_internet,
-        response_json_schema
-      });
+      // Use Ollama if configured
+      if (useOllama) {
+        console.log('Using Ollama (self-hosted AI)');
+        return await invokeOllamaAgent({
+          prompt,
+          add_context_from_internet,
+          response_json_schema
+        });
+      }
+      
+      // Fall back to OpenAI if available
+      if (hasOpenAIKey) {
+        console.log('Using OpenAI');
+        return await invokeOpenAIAgent({
+          prompt,
+          add_context_from_internet,
+          response_json_schema
+        });
+      }
+      
+      // No AI provider configured
+      throw new Error(
+        'No AI provider configured. Please either:\n' +
+        '1. Add VITE_OPENAI_API_KEY to .env.local for OpenAI (paid)\n' +
+        '2. Set VITE_USE_OLLAMA=true and run Ollama locally (free)\n\n' +
+        'For Ollama setup:\n' +
+        '- Install from: https://ollama.ai\n' +
+        '- Run: ollama pull llama3.2\n' +
+        '- Set VITE_USE_OLLAMA=true in .env.local'
+      );
     }
   }
 };
