@@ -106,7 +106,7 @@ export const entities = {
 };
 
 // AI Integration with OpenAI Agent or Ollama
-import { invokeOpenAIAgent, DOMAIN_KEY } from './openai';
+import { invokeOpenAIAgent } from './openai';
 import { invokeOllamaAgent } from './ollama';
 
 // Determine which AI provider to use
@@ -119,7 +119,6 @@ export const integrations = {
     async InvokeLLM({ prompt, add_context_from_internet = false, response_json_schema = null }) {
       // Use Ollama if configured
       if (useOllama) {
-        console.log('Using Ollama (self-hosted AI)');
         return await invokeOllamaAgent({
           prompt,
           add_context_from_internet,
@@ -129,7 +128,6 @@ export const integrations = {
       
       // Fall back to OpenAI if available
       if (hasOpenAIKey) {
-        console.log('Using OpenAI');
         return await invokeOpenAIAgent({
           prompt,
           add_context_from_internet,
@@ -139,17 +137,9 @@ export const integrations = {
       
       // No AI provider configured
       throw new Error(
-        'No AI provider configured. Please either:\n' +
-        '1. Add VITE_OPENAI_API_KEY to .env.local for OpenAI (paid)\n' +
-        '2. Set VITE_USE_OLLAMA=true and run Ollama locally (free)\n\n' +
-        'For Ollama setup:\n' +
-        '- Install from: https://ollama.ai\n' +
-        '- Run: ollama pull llama3.2\n' +
-        '- Set VITE_USE_OLLAMA=true in .env.local'
+        'No AI provider configured. Please configure either OpenAI or Ollama in your .env.local file. ' +
+        'See AI_SETUP.md for detailed setup instructions.'
       );
     }
   }
 };
-
-// Export domain key for reference
-export { DOMAIN_KEY };

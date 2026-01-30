@@ -62,12 +62,10 @@ export async function invokeOllamaAgent({ prompt, add_context_from_internet = fa
     console.error('Ollama Agent Error:', error);
 
     // Provide helpful error messages
-    if (error.message.includes('fetch')) {
+    if (error instanceof TypeError || error.message.includes('Failed to fetch')) {
       throw new Error(
-        `Cannot connect to Ollama at ${OLLAMA_URL}. ` +
-        'Please ensure Ollama is installed and running. ' +
-        'Install from: https://ollama.ai\n' +
-        `Then run: ollama run ${OLLAMA_MODEL}`
+        'Cannot connect to Ollama. Please ensure Ollama is installed and running. ' +
+        'Install from: https://ollama.ai and run: ollama run ' + OLLAMA_MODEL
       );
     }
 

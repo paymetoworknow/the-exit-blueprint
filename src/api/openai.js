@@ -1,6 +1,8 @@
 import OpenAI from 'openai';
 
-// OpenAI Agent Configuration with Domain Key
+// OpenAI Agent Configuration
+// DOMAIN_KEY is a public identifier for the Exit Blueprint domain
+// This is not a secret and can be safely exposed in client-side code
 const DOMAIN_KEY = 'domain_pk_6975eb4c348081939e1a0714ec2c67850c789740bb9d121d';
 
 // Check if OpenAI API key is configured
@@ -25,7 +27,7 @@ export async function invokeOpenAIAgent({ prompt, add_context_from_internet = fa
   if (!openai) {
     throw new Error(
       'OpenAI API is not configured. Please add VITE_OPENAI_API_KEY to your .env.local file. ' +
-      'Alternatively, you can use the self-hosted Ollama option by setting VITE_USE_OLLAMA=true.'
+      'See AI_SETUP.md for setup instructions.'
     );
   }
 
@@ -75,11 +77,11 @@ export async function invokeOpenAIAgent({ prompt, add_context_from_internet = fa
     
     // Provide helpful error messages
     if (error.status === 401) {
-      throw new Error('OpenAI API key is invalid. Please check VITE_OPENAI_API_KEY in your environment variables.');
+      throw new Error('OpenAI API key is invalid. Please check VITE_OPENAI_API_KEY in your .env.local file.');
     } else if (error.status === 429) {
       throw new Error('OpenAI rate limit exceeded. Please try again in a moment.');
     } else if (error.status === 500) {
-      throw new Error('OpenAI service error. Please try again.');
+      throw new Error('OpenAI service error. Please try again later.');
     }
     
     throw error;
