@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import GlassCard from '@/components/ui/GlassCard';
 import StageHeader from '@/components/ui/StageHeader';
+import { useToast } from '@/components/ui/use-toast';
 
 const brandVoices = [
   { value: 'professional', label: 'Professional', description: 'Formal, authoritative, trustworthy' },
@@ -30,6 +31,7 @@ const fontPairings = [
 
 export default function Stage2Architect() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('branding');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copiedColor, setCopiedColor] = useState(null);
@@ -230,8 +232,21 @@ Generate:
       setIsGenerating(false);
       queryClient.invalidateQueries({ queryKey: ['brand-assets'] });
       queryClient.invalidateQueries({ queryKey: ['businesses'] });
+      toast({
+        title: "Brand Generated",
+        description: "Brand identity and assets created successfully",
+      });
     },
-    onError: () => setIsGenerating(false),
+    onError: (error) => {
+      setIsGenerating(false);
+      console.error('Brand generation error:', error);
+      const errorMessage = error.message?.replace(/\n/g, ' ') || 'Failed to generate brand assets';
+      toast({
+        title: "Generation Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
   });
 
   const saveMutation = useMutation({
@@ -247,7 +262,21 @@ Generate:
       }
       return entities.BrandAssets.create(payload);
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['brand-assets'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['brand-assets'] });
+      toast({
+        title: "Success",
+        description: "Brand assets saved successfully",
+      });
+    },
+    onError: (error) => {
+      console.error('Save error:', error);
+      toast({
+        title: "Error",
+        description: error.message?.replace(/\n/g, ' ') || "Failed to save brand assets",
+        variant: "destructive",
+      });
+    },
   });
 
   const copyColor = (color) => {
