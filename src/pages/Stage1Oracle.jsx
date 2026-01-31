@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import GlassCard from '@/components/ui/GlassCard';
 import StageHeader from '@/components/ui/StageHeader';
 import ConfidenceScore from '@/components/ui/ConfidenceScore';
+import { useToast } from '@/components/ui/use-toast';
 
 const industries = [
   { value: 'saas', label: 'SaaS / Software' },
@@ -40,6 +41,7 @@ const businessModels = [
 
 export default function Stage1Oracle() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('idea');
   const [isGenerating, setIsGenerating] = useState(false);
 
@@ -90,7 +92,21 @@ export default function Stage1Oracle() {
       }
       return entities.BusinessCore.create({ ...data, current_stage: 1, confidence_score: 0 });
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['businesses'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['businesses'] });
+      toast({
+        title: "Success",
+        description: "Business information saved successfully",
+      });
+    },
+    onError: (error) => {
+      console.error('Save error:', error);
+      toast({
+        title: "Error",
+        description: error.message?.replace(/\n/g, ' ') || "Failed to save business information",
+        variant: "destructive",
+      });
+    },
   });
 
   const generateAnalysisMutation = useMutation({
@@ -195,8 +211,21 @@ Provide:
       queryClient.invalidateQueries({ queryKey: ['businesses'] });
       queryClient.invalidateQueries({ queryKey: ['market-analysis'] });
       setActiveTab('analysis');
+      toast({
+        title: "Analysis Complete",
+        description: "Market analysis generated successfully",
+      });
     },
-    onError: () => setIsGenerating(false),
+    onError: (error) => {
+      setIsGenerating(false);
+      console.error('Generation error:', error);
+      const errorMessage = error.message?.replace(/\n/g, ' ') || 'Failed to generate market analysis';
+      toast({
+        title: "Generation Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
   });
 
   const handleSave = () => {

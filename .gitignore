@@ -28,3 +28,8 @@ dist-ssr
 *.sw?
 
 .env
+
+# Test files
+test-*.mjs
+test-*.js
+validate-*.sh

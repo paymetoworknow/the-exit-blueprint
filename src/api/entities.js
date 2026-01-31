@@ -105,20 +105,84 @@ export const entities = {
   SalesGoal: createEntity('sales_goal'),
 };
 
-// AI Integration with OpenAI Agent
-import { invokeOpenAIAgent, DOMAIN_KEY } from './openai';
+// AI Integration with provider selection
+import { invokeOpenAIAgent, generateOpenAIImage } from './openai';
+import { invokeOllamaAgent, generateOllamaImage } from './ollama';
+
+/**
+ * Determine which AI provider to use based on environment configuration
+ */
+function selectAIProvider() {
+  const useOllama = import.meta.env.VITE_USE_OLLAMA === 'true';
+  const hasOpenAIKey = !!import.meta.env.VITE_OPENAI_API_KEY;
+
+  if (useOllama) {
+    return 'ollama';
+  } else if (hasOpenAIKey) {
+    return 'openai';
+  }
+  
+  return null;
+}
 
 export const integrations = {
   Core: {
     async InvokeLLM({ prompt, add_context_from_internet = false, response_json_schema = null }) {
-      return await invokeOpenAIAgent({
-        prompt,
-        add_context_from_internet,
-        response_json_schema
-      });
+      const provider = selectAIProvider();
+
+      try {
+        if (provider === 'ollama') {
+          return await invokeOllamaAgent({
+            prompt,
+            response_json_schema
+          });
+        } else if (provider === 'openai') {
+          return await invokeOpenAIAgent({
+            prompt,
+            add_context_from_internet,
+            response_json_schema
+          });
+        } else {
+          throw new Error('No AI provider configured. Add VITE_OPENAI_API_KEY to .env.local or set VITE_USE_OLLAMA=true for local Ollama. See AI_SETUP.md for configuration steps.');
+        }
+      } catch (error) {
+        // Re-throw with context if not already a formatted error
+        if (error.message && (
+          error.message.includes('not configured') ||
+          error.message.includes('unreachable') ||
+          error.message.includes('invalid') ||
+          error.message.includes('AI_SETUP.md')
+        )) {
+          throw error;
+        }
+        
+        // Add provider context to generic errors
+        throw new Error(`AI provider error (${provider || 'none'}): ${error.message}`);
+      }
+    },
+
+    async GenerateImage({ prompt }) {
+      const provider = selectAIProvider();
+
+      try {
+        if (provider === 'ollama') {
+          return await generateOllamaImage({ prompt });
+        } else if (provider === 'openai') {
+          return await generateOpenAIImage({ prompt });
+        } else {
+          throw new Error('No AI provider configured for image generation. OpenAI with DALL-E is required. See AI_SETUP.md for setup.');
+        }
+      } catch (error) {
+        // Re-throw formatted errors
+        if (error.message && error.message.includes('not supported')) {
+          throw error;
+        }
+        
+        throw new Error(`Image generation error (${provider || 'none'}): ${error.message}`);
+      }
     }
   }
 };
 
 // Export domain key for reference
-export { DOMAIN_KEY };
+export { DOMAIN_KEY } from './openai';
