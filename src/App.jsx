@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'; // Required for React.Fragment with key prop
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
