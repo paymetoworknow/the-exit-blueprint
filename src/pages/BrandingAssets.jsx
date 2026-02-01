@@ -189,6 +189,7 @@ export default function BrandingAssets() {
                     src={asset}
                     alt={`${selectedType?.name} ${idx + 1}`}
                     className="w-full aspect-video object-cover"
+                    loading="lazy"
                   />
                 </div>
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-3">

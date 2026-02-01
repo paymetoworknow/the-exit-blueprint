@@ -1,23 +1,26 @@
-import Analytics from './pages/Analytics';
-import BrandAudit from './pages/BrandAudit';
-import BrandingAssets from './pages/BrandingAssets';
-import BusinessPlanGenerator from './pages/BusinessPlanGenerator';
-import CRMIntegration from './pages/CRMIntegration';
-import Collaboration from './pages/Collaboration';
-import Dashboard from './pages/Dashboard';
-import DecisionAssistant from './pages/DecisionAssistant';
-import FormGenerator from './pages/FormGenerator';
-import RiskAnalysis from './pages/RiskAnalysis';
-import Settings from './pages/Settings';
-import Stage1Oracle from './pages/Stage1Oracle';
-import Stage2Architect from './pages/Stage2Architect';
-import Stage3Engine from './pages/Stage3Engine';
-import Stage4Quant from './pages/Stage4Quant';
-import Stage5Exit from './pages/Stage5Exit';
-import Support from './pages/Support';
-import InvestorOutreach from './pages/InvestorOutreach';
-import Onboarding from './pages/Onboarding';
+import { lazy } from 'react';
 import __Layout from './Layout.jsx';
+
+// Lazy load all pages for code splitting
+const Analytics = lazy(() => import('./pages/Analytics'));
+const BrandAudit = lazy(() => import('./pages/BrandAudit'));
+const BrandingAssets = lazy(() => import('./pages/BrandingAssets'));
+const BusinessPlanGenerator = lazy(() => import('./pages/BusinessPlanGenerator'));
+const CRMIntegration = lazy(() => import('./pages/CRMIntegration'));
+const Collaboration = lazy(() => import('./pages/Collaboration'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const DecisionAssistant = lazy(() => import('./pages/DecisionAssistant'));
+const FormGenerator = lazy(() => import('./pages/FormGenerator'));
+const RiskAnalysis = lazy(() => import('./pages/RiskAnalysis'));
+const Settings = lazy(() => import('./pages/Settings'));
+const Stage1Oracle = lazy(() => import('./pages/Stage1Oracle'));
+const Stage2Architect = lazy(() => import('./pages/Stage2Architect'));
+const Stage3Engine = lazy(() => import('./pages/Stage3Engine'));
+const Stage4Quant = lazy(() => import('./pages/Stage4Quant'));
+const Stage5Exit = lazy(() => import('./pages/Stage5Exit'));
+const Support = lazy(() => import('./pages/Support'));
+const InvestorOutreach = lazy(() => import('./pages/InvestorOutreach'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
 
 
 export const PAGES = {
