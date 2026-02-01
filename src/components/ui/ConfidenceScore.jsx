@@ -40,7 +40,7 @@ export default function ConfidenceScore({ score, size = 'md', showLabel = true }
             cy={radius + strokeWidth}
             r={radius}
             fill="none"
-            className={cn(color.stroke, "transition-[stroke-dashoffset] duration-1000 ease-out")}
+            className={cn(color.stroke, "transition-stroke-dash")}
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={circumference}
