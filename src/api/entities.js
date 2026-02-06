@@ -105,20 +105,41 @@ export const entities = {
   SalesGoal: createEntity('sales_goal'),
 };
 
-// AI Integration with OpenAI Agent
-import { invokeOpenAIAgent, DOMAIN_KEY } from './openai';
+// AI Integration with OpenAI Agent or Ollama
+import { invokeOpenAIAgent } from './openai';
+import { invokeOllamaAgent } from './ollama';
+
+// Determine which AI provider to use
+const useOllama = import.meta.env.VITE_USE_OLLAMA === 'true';
+const hasOpenAIKey = import.meta.env.VITE_OPENAI_API_KEY && 
+  import.meta.env.VITE_OPENAI_API_KEY !== 'sk-your-openai-api-key-here';
 
 export const integrations = {
   Core: {
     async InvokeLLM({ prompt, add_context_from_internet = false, response_json_schema = null }) {
-      return await invokeOpenAIAgent({
-        prompt,
-        add_context_from_internet,
-        response_json_schema
-      });
+      // Use Ollama if configured
+      if (useOllama) {
+        return await invokeOllamaAgent({
+          prompt,
+          add_context_from_internet,
+          response_json_schema
+        });
+      }
+      
+      // Fall back to OpenAI if available
+      if (hasOpenAIKey) {
+        return await invokeOpenAIAgent({
+          prompt,
+          add_context_from_internet,
+          response_json_schema
+        });
+      }
+      
+      // No AI provider configured
+      throw new Error(
+        'No AI provider configured. Please configure either OpenAI or Ollama in your .env.local file. ' +
+        'See AI_SETUP.md for detailed setup instructions.'
+      );
     }
   }
 };
-
-// Export domain key for reference
-export { DOMAIN_KEY };
