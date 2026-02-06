@@ -158,7 +158,10 @@ npm run preview  # Preview production build
 - Required variables:
   - `VITE_SUPABASE_URL` - Supabase project URL
   - `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
-- All environment variables must be prefixed with `VITE_` to be accessible
+  - `VITE_OPENAI_API_KEY` - OpenAI API key for AI features
+  - `VITE_OPENAI_MODEL` - OpenAI model to use (e.g., gpt-4o-mini)
+- All environment variables must be prefixed with `VITE_` to be accessible in the application
+- See `.env.local.example` for all available environment variables
 
 ## Key Patterns
 
