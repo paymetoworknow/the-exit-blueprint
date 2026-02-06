@@ -1,3 +1,4 @@
+import React from 'react'; // Required for React.Fragment with key prop
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -16,6 +17,20 @@ const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
   : <>{children}</>;
+
+// Helper function to convert camelCase to hyphenated format
+const toHyphenated = (str) => {
+  return str
+    // Insert hyphen before uppercase letters (but not at the start)
+    .replace(/([a-z])([A-Z])/g, '$1-$2')
+    // Handle consecutive uppercase letters (acronyms)
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1-$2')
+    // Insert hyphen before numbers when following a letter
+    .replace(/([a-zA-Z])(\d)/g, '$1-$2')
+    // Insert hyphen after numbers when followed by a letter
+    .replace(/(\d)([a-zA-Z])/g, '$1-$2')
+    .toLowerCase();
+};
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -48,17 +63,35 @@ const AuthenticatedApp = () => {
           <MainPage />
         </LayoutWrapper>
       } />
-      {Object.entries(Pages).map(([path, Page]) => (
-        <Route
-          key={path}
-          path={`/${path}`}
-          element={
-            <LayoutWrapper currentPageName={path}>
-              <Page />
-            </LayoutWrapper>
-          }
-        />
-      ))}
+      {Object.entries(Pages).map(([path, Page]) => {
+        const hyphenatedPath = toHyphenated(path);
+        const isCamelCase = path !== hyphenatedPath;
+        
+        return (
+          <React.Fragment key={path}>
+            {/* Primary route with original camelCase path */}
+            <Route
+              path={`/${path}`}
+              element={
+                <LayoutWrapper currentPageName={path}>
+                  <Page />
+                </LayoutWrapper>
+              }
+            />
+            {/* Alias route with hyphenated path (only if different from camelCase) */}
+            {isCamelCase && (
+              <Route
+                path={`/${hyphenatedPath}`}
+                element={
+                  <LayoutWrapper currentPageName={path}>
+                    <Page />
+                  </LayoutWrapper>
+                }
+              />
+            )}
+          </React.Fragment>
+        );
+      })}
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
