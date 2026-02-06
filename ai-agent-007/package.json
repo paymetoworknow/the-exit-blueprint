@@ -1,0 +1,37 @@
+{
+  "name": "ai-agent-007",
+  "version": "0.1.0",
+  "description": "An intelligent AI agent capable of coding apps, websites, and programs from concept to operation",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test tests/**/*.test.js",
+    "lint": "eslint src/",
+    "format": "prettier --write src/"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "code-generation",
+    "autonomous",
+    "llm"
+  ],
+  "author": "paymetoworknow",
+  "license": "MIT",
+  "dependencies": {
+    "openai": "^4.0.0",
+    "dotenv": "^16.0.0",
+    "chalk": "^5.0.0",
+    "commander": "^11.0.0",
+    "inquirer": "^9.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
