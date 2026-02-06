@@ -580,6 +580,7 @@ function LogosView({ logoConcepts, faviconUrl, selectedLogo, onSelectLogo, busin
                   src={url} 
                   alt={`Logo concept ${idx + 1}`}
                   className="max-w-full max-h-full object-contain"
+                  loading="lazy"
                 />
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end">
@@ -620,13 +621,13 @@ function LogosView({ logoConcepts, faviconUrl, selectedLogo, onSelectLogo, busin
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-xl bg-white p-2 flex items-center justify-center border border-white/10">
-                  <img src={faviconUrl} alt="Favicon" className="w-full h-full object-contain" />
+                  <img src={faviconUrl} alt="Favicon" className="w-full h-full object-contain" loading="lazy" />
                 </div>
                 <div className="w-12 h-12 rounded-lg bg-white p-1.5 flex items-center justify-center border border-white/10">
-                  <img src={faviconUrl} alt="Favicon 32x32" className="w-full h-full object-contain" />
+                  <img src={faviconUrl} alt="Favicon 32x32" className="w-full h-full object-contain" loading="lazy" />
                 </div>
                 <div className="w-8 h-8 rounded-md bg-white p-1 flex items-center justify-center border border-white/10">
-                  <img src={faviconUrl} alt="Favicon 16x16" className="w-full h-full object-contain" />
+                  <img src={faviconUrl} alt="Favicon 16x16" className="w-full h-full object-contain" loading="lazy" />
                 </div>
               </div>
               <div className="flex gap-2">
@@ -659,7 +660,7 @@ function LogosView({ logoConcepts, faviconUrl, selectedLogo, onSelectLogo, busin
             <div className="flex-1 p-4 rounded-lg bg-white/5 border border-white/10">
               <p className="text-xs text-zinc-500 mb-2">Preview in browser tab:</p>
               <div className="flex items-center gap-2 p-3 rounded-lg bg-gray-900">
-                <img src={faviconUrl} alt="Tab preview" className="w-4 h-4" />
+                <img src={faviconUrl} alt="Tab preview" className="w-4 h-4" loading="lazy" />
                 <span className="text-sm text-zinc-300">{businessName}</span>
               </div>
             </div>

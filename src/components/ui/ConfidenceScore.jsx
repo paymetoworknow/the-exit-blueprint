@@ -40,12 +40,11 @@ export default function ConfidenceScore({ score, size = 'md', showLabel = true }
             cy={radius + strokeWidth}
             r={radius}
             fill="none"
-            className={color.stroke}
+            className={cn(color.stroke, "transition-stroke-dash")}
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
-            style={{ transition: 'stroke-dashoffset 1s ease-out' }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">

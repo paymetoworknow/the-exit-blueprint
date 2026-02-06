@@ -86,3 +86,29 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Performance optimizations */
+@layer utilities {
+  /* Custom transition for SVG stroke animation */
+  .transition-stroke-dash {
+    transition: stroke-dashoffset 1s ease-out;
+  }
+
+  /* Use GPU acceleration for transforms */
+  .transform-gpu {
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Optimize animations to use compositor thread */
+  .animate-spin,
+  .animate-pulse {
+    will-change: transform, opacity;
+  }
+
+  /* Smooth scrolling with GPU acceleration */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+}
