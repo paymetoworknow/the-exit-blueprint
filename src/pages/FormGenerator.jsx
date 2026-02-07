@@ -158,6 +158,8 @@ export default function FormGenerator() {
     a.remove();
   };
 
+  // Memoize filtered categories to avoid expensive operations on every render
+  // formCategories is a module-level constant and doesn't need to be in dependencies
   const filteredCategories = useMemo(() => {
     return formCategories.map(cat => ({
       ...cat,
