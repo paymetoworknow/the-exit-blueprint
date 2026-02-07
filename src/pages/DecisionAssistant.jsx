@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -166,7 +166,9 @@ Then provide:
     },
   });
 
-  const businessDecisions = decisions?.filter(d => d.business_id === currentBusiness?.id) || [];
+  const businessDecisions = useMemo(() => {
+    return decisions?.filter(d => d.business_id === currentBusiness?.id) || [];
+  }, [decisions, currentBusiness?.id]);
 
   return (
     <div className="max-w-7xl mx-auto">

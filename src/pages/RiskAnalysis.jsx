@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -190,16 +190,21 @@ Also provide:
     analyzeRisksMutation.mutate();
   };
 
-  const getRisksByCategory = (category) => {
+  const getRisksByCategory = useCallback((category) => {
     return riskReport?.risks?.filter(r => r.category === category) || [];
-  };
+  }, [riskReport?.risks]);
 
-  const getRiskCountByCategory = (category) => {
+  const getRiskCountByCategory = useCallback((category) => {
     return getRisksByCategory(category).length;
-  };
+  }, [getRisksByCategory]);
 
-  const criticalRisks = riskReport?.risks?.filter(r => r.severity === 'critical') || [];
-  const highRisks = riskReport?.risks?.filter(r => r.severity === 'high') || [];
+  const criticalRisks = useMemo(() => {
+    return riskReport?.risks?.filter(r => r.severity === 'critical') || [];
+  }, [riskReport?.risks]);
+
+  const highRisks = useMemo(() => {
+    return riskReport?.risks?.filter(r => r.severity === 'high') || [];
+  }, [riskReport?.risks]);
 
   return (
     <div className="max-w-7xl mx-auto">
