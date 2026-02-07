@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -192,7 +192,7 @@ export default function Stage4Quant() {
   };
 
   // Prevent non-numeric keyboard input (letters, special characters)
-  const handleKeyDown = (e) => {
+  const handleKeyDown = useCallback((e) => {
     // Allow: backspace, delete, tab, escape, enter, and arrow keys for navigation
     const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
     
@@ -214,7 +214,7 @@ export default function Stage4Quant() {
     if (!allowedKeys.includes(e.key) && !/^[0-9]$/.test(e.key)) {
       e.preventDefault();
     }
-  };
+  }, []);
 
   const handleSave = () => {
     saveMutation.mutate(formData);

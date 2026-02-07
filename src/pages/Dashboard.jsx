@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '../utils';
 import { entities } from '@/api/entities';
@@ -41,6 +41,11 @@ export default function Dashboard() {
   const currentBusiness = businesses?.[0];
   const currentFinancials = financials?.[0];
   const currentStage = currentBusiness?.current_stage || 1;
+
+  // Memoize new leads count to avoid filtering twice
+  const newLeadsCount = useMemo(() => {
+    return leads?.filter(l => l.status === 'new').length || 0;
+  }, [leads]);
 
   if (isLoading) {
     return (
@@ -103,7 +108,7 @@ export default function Dashboard() {
           icon={Users}
           label="Active Leads"
           value={leads?.length || 0}
-          trend={leads?.filter(l => l.status === 'new').length ? `${leads.filter(l => l.status === 'new').length} new` : ''}
+          trend={newLeadsCount ? `${newLeadsCount} new` : ''}
           trendColor="text-blue-400"
           gradient="from-blue-500/20 to-cyan-600/20"
         />

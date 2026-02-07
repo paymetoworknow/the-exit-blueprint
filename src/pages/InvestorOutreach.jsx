@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { entities, integrations } from '@/api/entities';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -279,10 +279,28 @@ Tone: Professional, confident, data-driven.`;
     recommended: outreachRecords?.filter(r => r.outreach_status === 'recommended').length || 0,
     sent: outreachRecords?.filter(r => r.outreach_status === 'sent').length || 0,
     responded: outreachRecords?.filter(r => r.outreach_status === 'responded').length || 0,
+    meeting: outreachRecords?.filter(r => r.outreach_status === 'meeting').length || 0,
     avgMatchScore: outreachRecords?.length > 0 
       ? outreachRecords.reduce((sum, r) => sum + (r.match_score || 0), 0) / outreachRecords.length 
       : 0
   };
+
+  // Memoized handlers for search criteria updates
+  const handleIndustryChange = useCallback((e) => {
+    setSearchCriteria(prev => ({ ...prev, industry: e.target.value }));
+  }, []);
+
+  const handleFundingStageChange = useCallback((value) => {
+    setSearchCriteria(prev => ({ ...prev, funding_stage: value }));
+  }, []);
+
+  const handleMinInvestmentChange = useCallback((e) => {
+    setSearchCriteria(prev => ({ ...prev, min_investment: Number(e.target.value) }));
+  }, []);
+
+  const handleMaxInvestmentChange = useCallback((e) => {
+    setSearchCriteria(prev => ({ ...prev, max_investment: Number(e.target.value) }));
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -329,7 +347,7 @@ Tone: Professional, confident, data-driven.`;
                 <Input
                   placeholder={currentBusiness?.industry || "e.g. SaaS, FinTech"}
                   value={searchCriteria.industry}
-                  onChange={(e) => setSearchCriteria({ ...searchCriteria, industry: e.target.value })}
+                  onChange={handleIndustryChange}
                   className="mt-2 bg-white/5 border-white/10"
                 />
               </div>
@@ -337,7 +355,7 @@ Tone: Professional, confident, data-driven.`;
                 <Label>Funding Stage</Label>
                 <Select
                   value={searchCriteria.funding_stage}
-                  onValueChange={(value) => setSearchCriteria({ ...searchCriteria, funding_stage: value })}
+                  onValueChange={handleFundingStageChange}
                 >
                   <SelectTrigger className="mt-2 bg-white/5 border-white/10">
                     <SelectValue />
@@ -356,7 +374,7 @@ Tone: Professional, confident, data-driven.`;
                 <Input
                   type="number"
                   value={searchCriteria.min_investment}
-                  onChange={(e) => setSearchCriteria({ ...searchCriteria, min_investment: Number(e.target.value) })}
+                  onChange={handleMinInvestmentChange}
                   className="mt-2 bg-white/5 border-white/10"
                 />
               </div>
@@ -365,7 +383,7 @@ Tone: Professional, confident, data-driven.`;
                 <Input
                   type="number"
                   value={searchCriteria.max_investment}
-                  onChange={(e) => setSearchCriteria({ ...searchCriteria, max_investment: Number(e.target.value) })}
+                  onChange={handleMaxInvestmentChange}
                   className="mt-2 bg-white/5 border-white/10"
                 />
               </div>

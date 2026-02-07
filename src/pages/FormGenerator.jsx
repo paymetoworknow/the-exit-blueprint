@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { entities, integrations } from '@/api/entities';
 import { useQuery } from '@tanstack/react-query';
 import { 
@@ -158,13 +158,17 @@ export default function FormGenerator() {
     a.remove();
   };
 
-  const filteredCategories = formCategories.map(cat => ({
-    ...cat,
-    forms: cat.forms.filter(f => 
-      f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      f.description.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  })).filter(cat => cat.forms.length > 0);
+  // Memoize filtered categories to avoid expensive operations on every render
+  // formCategories is a module-level constant and doesn't need to be in dependencies
+  const filteredCategories = useMemo(() => {
+    return formCategories.map(cat => ({
+      ...cat,
+      forms: cat.forms.filter(f => 
+        f.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        f.description.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    })).filter(cat => cat.forms.length > 0);
+  }, [searchQuery]);
 
   return (
     <div className="max-w-7xl mx-auto">

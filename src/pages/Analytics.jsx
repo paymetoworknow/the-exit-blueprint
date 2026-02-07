@@ -35,31 +35,37 @@ export default function Analytics() {
   const { data: financials, isLoading: loadingFinancials } = useQuery({
     queryKey: ['financials'],
     queryFn: () => entities.Financials.list('-created_date', 1),
+    enabled: visibleWidgets.financial,
   });
 
   const { data: market, isLoading: loadingMarket } = useQuery({
     queryKey: ['market-analysis'],
     queryFn: () => entities.MarketAnalysis.list('-created_date', 1),
+    enabled: visibleWidgets.market,
   });
 
   const { data: brand, isLoading: loadingBrand } = useQuery({
     queryKey: ['brand-assets'],
     queryFn: () => entities.BrandAssets.list('-created_date', 1),
+    enabled: visibleWidgets.brand,
   });
 
   const { data: leads, isLoading: loadingLeads } = useQuery({
     queryKey: ['crm-leads'],
     queryFn: () => entities.CRMLead.list('-created_date', 100),
+    enabled: visibleWidgets.crm,
   });
 
   const { data: documents, isLoading: loadingDocs } = useQuery({
     queryKey: ['due-diligence'],
     queryFn: () => entities.DueDiligence.list('-created_date', 100),
+    enabled: visibleWidgets.dueDiligence,
   });
 
   const { data: pitchDecks } = useQuery({
     queryKey: ['pitch-decks'],
     queryFn: () => entities.PitchDeck.list('-created_date', 1),
+    enabled: visibleWidgets.overview,
   });
 
   const currentBusiness = businesses?.[0];
