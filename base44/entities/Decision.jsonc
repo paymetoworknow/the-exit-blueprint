@@ -1,0 +1,68 @@
+{
+  "name": "Decision",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "decision_title": {
+      "type": "string",
+      "description": "Title of decision"
+    },
+    "decision_type": {
+      "type": "string",
+      "enum": [
+        "strategic",
+        "financial",
+        "operational",
+        "product",
+        "hiring"
+      ],
+      "description": "Type of decision"
+    },
+    "context": {
+      "type": "string",
+      "description": "Background and context"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Decision options to evaluate"
+    },
+    "ai_analysis": {
+      "type": "object",
+      "description": "AI-generated analysis and recommendation"
+    },
+    "selected_option": {
+      "type": "string",
+      "description": "Final decision made"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "analyzing",
+        "reviewed",
+        "decided",
+        "implemented"
+      ],
+      "default": "analyzing",
+      "description": "Decision status"
+    }
+  },
+  "required": [
+    "business_id",
+    "decision_title",
+    "decision_type"
+  ]
+}

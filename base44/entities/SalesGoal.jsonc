@@ -1,0 +1,72 @@
+{
+  "name": "SalesGoal",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "goal_type": {
+      "type": "string",
+      "enum": [
+        "revenue",
+        "new_leads",
+        "conversion_rate",
+        "deal_count",
+        "avg_deal_size",
+        "pipeline_value"
+      ],
+      "description": "Type of sales goal"
+    },
+    "target_value": {
+      "type": "number",
+      "description": "Target value to achieve"
+    },
+    "current_value": {
+      "type": "number",
+      "default": 0,
+      "description": "Current progress value"
+    },
+    "time_period": {
+      "type": "string",
+      "enum": [
+        "weekly",
+        "monthly",
+        "quarterly",
+        "annual"
+      ],
+      "description": "Goal time period"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Goal start date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Goal end date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "on_track",
+        "at_risk",
+        "behind",
+        "achieved"
+      ],
+      "default": "on_track",
+      "description": "Goal status"
+    },
+    "progress_percentage": {
+      "type": "number",
+      "description": "Progress toward goal (0-100)"
+    }
+  },
+  "required": [
+    "business_id",
+    "goal_type",
+    "target_value",
+    "time_period"
+  ]
+}

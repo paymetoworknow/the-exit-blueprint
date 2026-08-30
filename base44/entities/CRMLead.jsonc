@@ -1,0 +1,72 @@
+{
+  "name": "CRMLead",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "lead_type": {
+      "type": "string",
+      "enum": [
+        "investor",
+        "customer",
+        "partner",
+        "acquirer"
+      ],
+      "description": "Type of lead"
+    },
+    "name": {
+      "type": "string",
+      "description": "Contact name"
+    },
+    "company": {
+      "type": "string",
+      "description": "Company name"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email address"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Phone number"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "contacted",
+        "meeting",
+        "negotiating",
+        "closed_won",
+        "closed_lost"
+      ],
+      "default": "new",
+      "description": "Lead status"
+    },
+    "deal_size": {
+      "type": "number",
+      "description": "Potential deal size in USD"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes about the lead"
+    },
+    "last_contact": {
+      "type": "string",
+      "format": "date",
+      "description": "Last contact date"
+    },
+    "next_followup": {
+      "type": "string",
+      "format": "date",
+      "description": "Next follow-up date"
+    }
+  },
+  "required": [
+    "business_id",
+    "name",
+    "lead_type"
+  ]
+}

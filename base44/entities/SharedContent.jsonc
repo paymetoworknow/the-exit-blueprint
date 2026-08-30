@@ -1,0 +1,77 @@
+{
+  "name": "SharedContent",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "pitch_deck",
+        "risk_analysis",
+        "financials",
+        "market_analysis",
+        "full_report"
+      ],
+      "description": "Type of content being shared"
+    },
+    "share_token": {
+      "type": "string",
+      "description": "Unique token for accessing shared content"
+    },
+    "recipient_email": {
+      "type": "string",
+      "description": "Email of recipient"
+    },
+    "recipient_name": {
+      "type": "string",
+      "description": "Name of recipient"
+    },
+    "access_level": {
+      "type": "string",
+      "enum": [
+        "view",
+        "comment"
+      ],
+      "default": "view",
+      "description": "Access permissions"
+    },
+    "message": {
+      "type": "string",
+      "description": "Custom message to recipient"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When access expires"
+    },
+    "view_count": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of times viewed"
+    },
+    "last_viewed": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last access timestamp"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "revoked"
+      ],
+      "default": "active",
+      "description": "Share status"
+    }
+  },
+  "required": [
+    "business_id",
+    "content_type",
+    "share_token",
+    "recipient_email"
+  ]
+}

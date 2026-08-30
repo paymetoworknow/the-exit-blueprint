@@ -1,0 +1,89 @@
+{
+  "name": "Financials",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "monthly_revenue": {
+      "type": "number",
+      "default": 0,
+      "description": "Monthly recurring revenue"
+    },
+    "annual_revenue": {
+      "type": "number",
+      "default": 0,
+      "description": "Annual revenue"
+    },
+    "monthly_burn": {
+      "type": "number",
+      "default": 0,
+      "description": "Monthly burn rate"
+    },
+    "runway_months": {
+      "type": "number",
+      "description": "Runway in months"
+    },
+    "cash_on_hand": {
+      "type": "number",
+      "default": 0,
+      "description": "Current cash balance"
+    },
+    "cac": {
+      "type": "number",
+      "default": 0,
+      "description": "Customer Acquisition Cost"
+    },
+    "ltv": {
+      "type": "number",
+      "default": 0,
+      "description": "Lifetime Value"
+    },
+    "ltv_cac_ratio": {
+      "type": "number",
+      "description": "LTV/CAC ratio"
+    },
+    "gross_margin": {
+      "type": "number",
+      "description": "Gross margin percentage"
+    },
+    "churn_rate": {
+      "type": "number",
+      "default": 5,
+      "description": "Monthly churn rate percentage"
+    },
+    "customer_count": {
+      "type": "integer",
+      "default": 0,
+      "description": "Total customer count"
+    },
+    "arpu": {
+      "type": "number",
+      "description": "Average revenue per user"
+    },
+    "valuation": {
+      "type": "number",
+      "description": "Calculated company valuation"
+    },
+    "valuation_multiplier": {
+      "type": "number",
+      "description": "Industry valuation multiplier used"
+    },
+    "funding_raised": {
+      "type": "number",
+      "default": 0,
+      "description": "Total funding raised"
+    },
+    "funding_rounds": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "History of funding rounds"
+    }
+  },
+  "required": [
+    "business_id"
+  ]
+}

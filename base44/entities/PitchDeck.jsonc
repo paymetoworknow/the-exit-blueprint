@@ -1,0 +1,56 @@
+{
+  "name": "PitchDeck",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "deck_name": {
+      "type": "string",
+      "description": "Name of the pitch deck"
+    },
+    "slides": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Array of slide objects with content"
+    },
+    "theme": {
+      "type": "string",
+      "enum": [
+        "dark",
+        "light",
+        "gradient",
+        "minimal"
+      ],
+      "default": "dark",
+      "description": "Deck visual theme"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "review",
+        "final"
+      ],
+      "default": "draft",
+      "description": "Deck status"
+    },
+    "last_presented": {
+      "type": "string",
+      "format": "date",
+      "description": "Last presentation date"
+    },
+    "view_count": {
+      "type": "integer",
+      "default": 0,
+      "description": "Number of times viewed"
+    }
+  },
+  "required": [
+    "business_id",
+    "deck_name"
+  ]
+}

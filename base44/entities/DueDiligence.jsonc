@@ -1,0 +1,68 @@
+{
+  "name": "DueDiligence",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "legal",
+        "financial",
+        "operational",
+        "technical",
+        "hr",
+        "ip",
+        "contracts",
+        "compliance"
+      ],
+      "description": "Type of document"
+    },
+    "document_name": {
+      "type": "string",
+      "description": "Document name"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "Document file URL"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "uploaded",
+        "verified",
+        "flagged"
+      ],
+      "default": "pending",
+      "description": "Document status"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "private",
+        "investors",
+        "acquirers",
+        "public"
+      ],
+      "default": "private",
+      "description": "Document visibility"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes about the document"
+    },
+    "expiry_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Document expiry date if applicable"
+    }
+  },
+  "required": [
+    "business_id",
+    "document_type",
+    "document_name"
+  ]
+}

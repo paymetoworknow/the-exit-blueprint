@@ -1,0 +1,54 @@
+{
+  "name": "Feedback",
+  "type": "object",
+  "properties": {
+    "shared_content_id": {
+      "type": "string",
+      "description": "Reference to SharedContent"
+    },
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "author_name": {
+      "type": "string",
+      "description": "Name of feedback author"
+    },
+    "author_email": {
+      "type": "string",
+      "description": "Email of feedback author"
+    },
+    "feedback_text": {
+      "type": "string",
+      "description": "Feedback content"
+    },
+    "section": {
+      "type": "string",
+      "description": "Which section feedback refers to"
+    },
+    "sentiment": {
+      "type": "string",
+      "enum": [
+        "positive",
+        "neutral",
+        "negative"
+      ],
+      "description": "AI-detected sentiment"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "description": "AI-assessed priority"
+    }
+  },
+  "required": [
+    "business_id",
+    "author_name",
+    "feedback_text"
+  ]
+}

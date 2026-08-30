@@ -1,0 +1,51 @@
+{
+  "name": "BrandAudit",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "audit_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When audit was performed"
+    },
+    "overall_score": {
+      "type": "number",
+      "description": "Overall consistency score 0-100"
+    },
+    "voice_consistency": {
+      "type": "object",
+      "description": "Brand voice analysis results"
+    },
+    "visual_consistency": {
+      "type": "object",
+      "description": "Visual brand analysis results"
+    },
+    "inconsistencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "string"
+          },
+          "issue": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "suggestion": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "List of found inconsistencies"
+    }
+  },
+  "required": [
+    "business_id"
+  ]
+}

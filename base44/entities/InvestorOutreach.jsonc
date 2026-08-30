@@ -1,0 +1,62 @@
+{
+  "name": "InvestorOutreach",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "investor_name": {
+      "type": "string",
+      "description": "Investor name"
+    },
+    "investor_email": {
+      "type": "string",
+      "description": "Investor email"
+    },
+    "match_score": {
+      "type": "number",
+      "description": "AI-calculated match score 0-100"
+    },
+    "match_reasoning": {
+      "type": "string",
+      "description": "Why this investor is a good match"
+    },
+    "outreach_status": {
+      "type": "string",
+      "enum": [
+        "recommended",
+        "sent",
+        "responded",
+        "meeting_scheduled",
+        "passed"
+      ],
+      "default": "recommended",
+      "description": "Outreach status"
+    },
+    "email_sent_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When email was sent"
+    },
+    "follow_up_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When to follow up"
+    },
+    "email_content": {
+      "type": "string",
+      "description": "Generated email content"
+    },
+    "response_received": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether investor responded"
+    }
+  },
+  "required": [
+    "business_id",
+    "investor_name",
+    "investor_email"
+  ]
+}

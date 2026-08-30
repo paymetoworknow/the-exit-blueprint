@@ -1,0 +1,84 @@
+{
+  "name": "BusinessCore",
+  "type": "object",
+  "properties": {
+    "business_name": {
+      "type": "string",
+      "description": "Name of the business"
+    },
+    "tagline": {
+      "type": "string",
+      "description": "One-line business tagline"
+    },
+    "mission": {
+      "type": "string",
+      "description": "Mission statement"
+    },
+    "vision": {
+      "type": "string",
+      "description": "Vision statement"
+    },
+    "industry": {
+      "type": "string",
+      "enum": [
+        "saas",
+        "ecommerce",
+        "fintech",
+        "healthtech",
+        "edtech",
+        "marketplace",
+        "consumer",
+        "enterprise",
+        "other"
+      ],
+      "description": "Industry vertical"
+    },
+    "business_model": {
+      "type": "string",
+      "enum": [
+        "subscription",
+        "transactional",
+        "marketplace",
+        "advertising",
+        "freemium",
+        "enterprise",
+        "hybrid"
+      ],
+      "description": "Primary business model"
+    },
+    "target_customer": {
+      "type": "string",
+      "description": "Target customer description"
+    },
+    "problem_statement": {
+      "type": "string",
+      "description": "Problem being solved"
+    },
+    "solution": {
+      "type": "string",
+      "description": "Proposed solution"
+    },
+    "unique_value_prop": {
+      "type": "string",
+      "description": "Unique value proposition"
+    },
+    "current_stage": {
+      "type": "integer",
+      "default": 1,
+      "description": "Current workflow stage (1-5)"
+    },
+    "confidence_score": {
+      "type": "number",
+      "default": 0,
+      "description": "Overall viability confidence score 0-100"
+    },
+    "stage_completion": {
+      "type": "object",
+      "description": "Completion status of each stage"
+    }
+  },
+  "required": [
+    "business_name",
+    "industry"
+  ]
+}

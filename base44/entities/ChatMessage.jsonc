@@ -1,0 +1,36 @@
+{
+  "name": "ChatMessage",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Chat session identifier"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "user",
+        "assistant"
+      ],
+      "description": "Message sender"
+    },
+    "content": {
+      "type": "string",
+      "description": "Message content"
+    },
+    "helpful": {
+      "type": "boolean",
+      "description": "User feedback on AI response"
+    }
+  },
+  "required": [
+    "business_id",
+    "session_id",
+    "role",
+    "content"
+  ]
+}

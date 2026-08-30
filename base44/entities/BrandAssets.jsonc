@@ -1,0 +1,78 @@
+{
+  "name": "BrandAssets",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "primary_color": {
+      "type": "string",
+      "description": "Primary brand color hex"
+    },
+    "secondary_color": {
+      "type": "string",
+      "description": "Secondary brand color hex"
+    },
+    "accent_color": {
+      "type": "string",
+      "description": "Accent color hex"
+    },
+    "background_color": {
+      "type": "string",
+      "description": "Background color hex"
+    },
+    "text_color": {
+      "type": "string",
+      "description": "Primary text color hex"
+    },
+    "heading_font": {
+      "type": "string",
+      "description": "Heading font family"
+    },
+    "body_font": {
+      "type": "string",
+      "description": "Body font family"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Selected logo file URL"
+    },
+    "logo_concepts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Array of generated logo concept URLs"
+    },
+    "favicon_url": {
+      "type": "string",
+      "description": "Favicon URL"
+    },
+    "brand_voice": {
+      "type": "string",
+      "enum": [
+        "professional",
+        "friendly",
+        "bold",
+        "innovative",
+        "trustworthy"
+      ],
+      "description": "Brand voice/tone"
+    },
+    "marketing_copy": {
+      "type": "object",
+      "description": "Generated marketing copy blocks"
+    },
+    "sop_list": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "Standard Operating Procedures for 90 days"
+    }
+  },
+  "required": [
+    "business_id"
+  ]
+}

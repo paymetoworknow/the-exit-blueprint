@@ -1,0 +1,85 @@
+{
+  "name": "SupportTicket",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Ticket subject/title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed issue description"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "technical",
+        "billing",
+        "feature_request",
+        "bug_report",
+        "general",
+        "form_help"
+      ],
+      "description": "Ticket category"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium",
+      "description": "AI-assessed priority"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "in_progress",
+        "waiting_response",
+        "resolved",
+        "closed"
+      ],
+      "default": "open",
+      "description": "Ticket status"
+    },
+    "ai_response": {
+      "type": "string",
+      "description": "AI-generated response"
+    },
+    "requires_human": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether ticket needs human support"
+    },
+    "sentiment": {
+      "type": "string",
+      "enum": [
+        "positive",
+        "neutral",
+        "negative",
+        "urgent"
+      ],
+      "description": "User sentiment analysis"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Auto-generated tags"
+    }
+  },
+  "required": [
+    "business_id",
+    "subject",
+    "description",
+    "category"
+  ]
+}

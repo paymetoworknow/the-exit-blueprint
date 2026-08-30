@@ -1,0 +1,60 @@
+{
+  "name": "MarketAnalysis",
+  "type": "object",
+  "properties": {
+    "business_id": {
+      "type": "string",
+      "description": "Reference to BusinessCore"
+    },
+    "tam": {
+      "type": "number",
+      "description": "Total Addressable Market in USD"
+    },
+    "sam": {
+      "type": "number",
+      "description": "Serviceable Addressable Market in USD"
+    },
+    "som": {
+      "type": "number",
+      "description": "Serviceable Obtainable Market in USD"
+    },
+    "tam_rationale": {
+      "type": "string",
+      "description": "TAM calculation rationale"
+    },
+    "sam_rationale": {
+      "type": "string",
+      "description": "SAM calculation rationale"
+    },
+    "som_rationale": {
+      "type": "string",
+      "description": "SOM calculation rationale"
+    },
+    "market_growth_rate": {
+      "type": "number",
+      "description": "Annual market growth rate percentage"
+    },
+    "competitors": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "description": "List of competitors with details"
+    },
+    "lean_canvas": {
+      "type": "object",
+      "description": "Lean Canvas model data"
+    },
+    "swot": {
+      "type": "object",
+      "description": "SWOT analysis data"
+    },
+    "market_confidence": {
+      "type": "number",
+      "description": "Market viability confidence 0-100"
+    }
+  },
+  "required": [
+    "business_id"
+  ]
+}
